@@ -2,7 +2,7 @@ import os
 import json
 import get_data
 
-JSON_FILE = "nba_players.json"
+JSON_FILE = "data/nba_players.json"
 
 def fetch_data():
     if os.path.exists(JSON_FILE):

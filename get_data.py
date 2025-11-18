@@ -75,10 +75,7 @@ def run():
 
     driver.quit()
 
-    with open("nba_players.json", "w", encoding="utf-8") as f:
+    with open("data/nba_players.json", "w", encoding="utf-8") as f:
         json.dump(players, f, ensure_ascii=False, indent=4)
 
     print(f"Saved {len(players)} players to nba_players.json")
-
-
-    print(f"Scraped {len(players)} players")
