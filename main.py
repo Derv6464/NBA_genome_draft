@@ -14,7 +14,8 @@ def main():
 
     team = (handler.make_random_team())
     for player in team:
-        print(player["name"])
+        print(player.get("name"), player.get("position"), player.get("team"))
+
 
 
 
