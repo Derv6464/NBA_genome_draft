@@ -17,17 +17,47 @@ class DataGenerator:
         self.nba_fantasy_url = "https://nbafantasy.nba.com/statistics"
         self.espn_v2_url = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams"
         self.espn_v3_url = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/"
+        self.messed_up_names = self.read_messed_up_names()
         self.players = []
         self.teams = []
 
-    def run(self):
+    def get_all_info(self):
+        print("Fetching player data...")
         self.get_player_data()
+        print("Fetching game data...")
         self.get_game_data()
-        # self.testing_api()
+        print("Updating player stats...")
+        self.get_player_stats()
+
+    def update_player_stats(self):
+        print("Reading existing data...")
+        self.teams = self.read_game_data()
+        self.players = self.read_player_data()
+        print("Updating player stats...")
+        self.get_player_stats()
+
+    def get_existing_data(self):
+        self.players = self.read_player_data()
+        self.teams = self.read_game_data()
 
     def ensure_data_folder(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
+
+    def read_player_data(self):
+        with open(f"{self.folder_path}/nba_players.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data
+
+    def read_game_data(self):
+        with open(f"{self.folder_path}/nba_game.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data
+        
+    def read_messed_up_names(self):
+        with open(f"{self.folder_path}/messed_up_name.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data
 
     def get_player_data(self):
         options = Options()
@@ -72,11 +102,14 @@ class DataGenerator:
 
                 self.players.append({
                     "name": name,
+                    "id": None,
                     "team": team,
+                    "position": None,
                     "salary": salary,
                     "selected": selected,
                     "form": form,
-                    "total_points": total_points
+                    "total_points": total_points,
+                    "weekly_stats": {}
                 })
 
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
@@ -98,10 +131,9 @@ class DataGenerator:
             json.dump(self.players, f, ensure_ascii=False, indent=4)
 
     def get_week_from_date(self, date_str):
-        #week 1 starts on wednesday, so messes with result
-        week2_start = datetime.fromisoformat("2025-10-20").replace(tzinfo=timezone.utc)
+        week1_start = datetime.fromisoformat("2025-10-20").replace(tzinfo=timezone.utc)
         game_dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        delta_days = (game_dt - week2_start).days
+        delta_days = (game_dt - week1_start).days
         if delta_days < 0:
             return 1
         
@@ -139,17 +171,96 @@ class DataGenerator:
         with open(f"{self.folder_path}/nba_game.json", "w", encoding="utf-8") as f:
             json.dump(self.teams, f, ensure_ascii=False, indent=4)
 
-    def testing_api():
-        roster = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/1/roster"
+    def search_player(self, name):
+        for i, player in enumerate(self.players):
+            if player["name"] == name:
+                return i
+            
+    def calc_weekly_point(self, weeks_stats):
+        ''' ["Minutes","Field Goals Made-Attempted","Field Goal Percentage","3-Point Field Goals Made-Attempted",
+            "3-Point Field Goal Percentage","Free Throws Made-Attempted","Free Throw Percentage","Rebounds","Assists",
+            "Blocks","Steals","Fouls","Turnovers","Points"
+        '''
+        total_points = 0
+        total_rebounds = 0
+        total_assists = 0
+        total_steals = 0
+        total_blocks = 0
+        for stat in weeks_stats:
+            total_points += int(stat[13])
+            total_rebounds += int(stat[7])
+            total_assists += int(stat[8])
+            total_steals += int(stat[10])
+            total_blocks += int(stat[9])
 
-        player_id = "3948153"
-        url = f"https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{player_id}/gamelog"
+        fantasy_points = (total_points + total_rebounds + (total_assists*2) + (total_steals*3) + (total_blocks*3))
+        return fantasy_points
+            
+    def make_player_stats(self, data):
+        if not data.get("seasonTypes"):
+            return {}
+        events_list = data["events"]
+        event_dict = {}
+        game_stats_per_week = {
+            week: {
+                "total_point": 0,
+                "per_game": []
+            }
+            for week in range(1, 26)
+        }
 
-        response = requests.get(url)
-        data = response.json()
-        with open("data/nba_game.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+        for event_id, event in events_list.items():
+            game_date = event.get("gameDate")
+            event_dict[event_id] = game_date
 
+        stats = data["seasonTypes"][0]["categories"]
+        for month in stats:
+            try:
+                if month.get("events"):
+                    for events in month["events"]:
+                        event_id = events["eventId"]
+                        week_number = self.get_week_from_date(event_dict[event_id])
+                        game_stats_per_week[week_number]["per_game"].append(events["stats"])
+            except Exception as e:
+                print(f"Error processing month data: {e}")
+                print(data)
+                continue
 
-gen = DataGenerator(folder_path="data")
-gen.get_game_data()
+        for week in game_stats_per_week:
+            total_fantasy_points = self.calc_weekly_point(game_stats_per_week[week]["per_game"])
+            game_stats_per_week[week]["total_point"] = total_fantasy_points
+
+        return game_stats_per_week
+
+    def get_player_stats(self):
+        player_not_found = []
+        if self.teams and self.players:
+            for team in self.teams:
+                print(f"Fetching roster for team: {team['name']}")
+                roster_request = f"{self.espn_v2_url}/{team['id']}/roster"
+                response = requests.get(roster_request)
+                data = response.json()
+                for player in data["athletes"]:
+                    player_index = self.search_player(player["displayName"])
+                    if player_index is None:
+                        messed_up_name = self.messed_up_names.get(player["displayName"])
+                        if messed_up_name:
+                            player_index = self.search_player(messed_up_name)
+                        else:
+                            player_not_found.append(player["displayName"])
+                            continue
+
+                    self.players[player_index]["id"] = player["id"]
+                    self.players[player_index]["position"] = player["position"]["abbreviation"]
+                    stats_request = f"{self.espn_v3_url}{player["id"]}/gamelog?season=2026"
+                    stats_response = requests.get(stats_request)
+                    stats_data = stats_response.json()
+                    game_stats_per_week = self.make_player_stats(stats_data)
+                    self.players[player_index]["weekly_stats"] = game_stats_per_week
+
+            with open(f"{self.folder_path}/nba_players.json", "w", encoding="utf-8") as f:
+                json.dump(self.players, f, ensure_ascii=False, indent=4)
+
+            print("Players not found in initial data:")
+            for name in player_not_found:
+                print(name)

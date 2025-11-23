@@ -1,31 +1,22 @@
 import os
 import json
-import get_data
+from get_data import DataGenerator
+from data_handler import DataHandler
 
-JSON_FILE = "data/nba_players.json"
-
-def fetch_data():
-    if os.path.exists(JSON_FILE):
-        print(f"{JSON_FILE} already exists. Skipping data fetch.")
-        return
-    
-    print("Fetching NBA player data...")
-    get_data.run()
-    print("Data fetch complete.")
-
-def read_data():
-    with open(JSON_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data
 
 
 def main():
-    fetch_data()
-    data = read_data()
-    
-    print(f"Total players fetched: {len(data)}")
-    for player in data[:5]:  
-        print(player)
+    data = DataGenerator("data")
+    data.get_existing_data()
+  
+
+    handler = DataHandler(data.players, data.teams)
+
+    team = (handler.make_random_team())
+    for player in team:
+        print(player["name"])
+
+
 
 
 if __name__ == "__main__":
