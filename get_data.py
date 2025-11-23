@@ -252,6 +252,9 @@ class DataGenerator:
 
                     self.players[player_index]["id"] = player["id"]
                     self.players[player_index]["position"] = player["position"]["abbreviation"]
+                    if self.players[player_index]["id"] is None:
+                        print(roster_request, player["displayName"])
+
                     stats_request = f"{self.espn_v3_url}{player["id"]}/gamelog?season=2026"
                     stats_response = requests.get(stats_request)
                     stats_data = stats_response.json()

@@ -4,9 +4,10 @@ class DataHandler:
     def __init__(self, player_data, game_data):
         self.player_data = player_data
         self.game_data = game_data
-        self.front_court_players = [p for p in player_data if p.get("position") in ["C", "F"]]
+        self.front_court_players = [p for p in player_data if p.get("position") in ["C", "F", "PF"]]
         self.back_court_players = [p for p in player_data if p.get("position") in ["G"]]
-        self.unspecified_players = [p for p in player_data if p.get("position") not in ["C", "F", "G"]]
+        self.unspecified_players = [p for p in player_data if p.get("position") not in ["C", "F", "G", "PF"]]
+        self.has_data = [p for p in self.unspecified_players if p.get("weekly_stats")]
 
 
     def make_random_team(self):
