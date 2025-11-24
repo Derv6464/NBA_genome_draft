@@ -5,23 +5,37 @@ class DataHandler:
         self.player_data = player_data
         self.game_data = game_data
         self.max_salary = max_salary
-        self.front_court_players = [p for p in player_data if p.get("position") in ["C", "F", "PF"]]
-        self.back_court_players = [p for p in player_data if p.get("position") in ["G"]]
-        self.unspecified_players = [p for p in player_data if p.get("position") not in ["C", "F", "G", "PF"]]
-        self.has_data = [p for p in self.unspecified_players if p.get("weekly_stats")]
-
+        self.front_court_players = [p for p in player_data if p.get("position") in ["fc"]]
+        self.back_court_players = [p for p in player_data if p.get("position") in ["bc"]]
+        self.unspecified_players = [p for p in player_data if p.get("position") not in ["fc", "bc"]]
+        self.has_no_data = [p for p in self.player_data if not p.get("weekly_stats")]
 
     def make_random_team(self):
-        #need to do front court, back court, etc.
-
-        team = random.sample(self.front_court_players, 2) + random.sample(self.back_court_players, 2)
-        if random.randint(0, 100) % 2 == 0:
-            team += random.sample(self.front_court_players, 1)
-        else:
-            team += random.sample(self.back_court_players, 1)
-
+        team = random.sample(self.front_court_players, 5) + random.sample(self.back_court_players, 5)
         return team
     
-    
+
     def get_team_salary(self, team):
         return sum([float(p.get("salary")) for p in team])
+    
+    def check_player_per_team(self, team):
+        for player in team:
+            team_count = sum(1 for p in team if p.get("team") == player.get("team"))
+            if team_count > 2:
+                return False
+
+        return True
+
+    def check_player_salary(self, team):
+        return self.get_team_salary(team) <= self.max_salary
+    
+    def check_team_validity(self, team):
+        return self.check_player_salary(team) and self.check_player_per_team(team)
+    
+    def make_random_valid_team(self):
+        team = self.make_random_team()
+
+        while not self.check_team_validity(team):
+            team = self.make_random_team()
+            
+        return team

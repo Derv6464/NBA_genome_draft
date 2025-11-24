@@ -78,16 +78,26 @@ class DataGenerator:
 
         def parse_page():
             soup = BeautifulSoup(driver.page_source, "html.parser")
-            rows = soup.select("table tbody tr")
+            rows = driver.find_elements(By.CSS_SELECTOR, "table tbody tr")
 
             for row in rows:
-                cols = row.find_all("td")
+                cols = row.find_elements(By.TAG_NAME, "td")
+
                 if len(cols) < 6:
                     continue
 
+                button = cols[0].find_element(By.TAG_NAME, "button")
+
+                # Parse row HTML with BeautifulSoup
+                row_html = row.get_attribute("innerHTML")
+                soup_row = BeautifulSoup(row_html, "html.parser")
+
+                # now extract player info using soup_row
+                inner_divs = soup_row.select("div > div > div")              
+
+                button = cols[0].find_element(By.TAG_NAME, "button")
                 player_block = cols[1]
 
-                inner_divs = player_block.select("div > div > div")
                 if len(inner_divs) >= 2:
                     name = inner_divs[0].get_text(strip=True)
                     team = inner_divs[2].get_text(strip=True)
@@ -95,22 +105,45 @@ class DataGenerator:
                     name = None
                     team = None
 
-                salary = cols[2].get_text(strip=True)
-                selected = cols[3].get_text(strip=True)
-                form = cols[4].get_text(strip=True)
-                total_points = cols[5].get_text(strip=True)
+                salary = cols[2].text.strip()
+                selected = cols[3].text.strip()
+                form = cols[4].text.strip()
+                total_points = cols[5].text.strip()
+
+                driver.execute_script("arguments[0].click();", button)
+                time.sleep(0.2)
+
+                modal = wait.until(
+                    EC.visibility_of_element_located((By.TAG_NAME, "dialog"))
+                )
+                modal_html = modal.get_attribute("innerHTML")
+                modal_soup = BeautifulSoup(modal_html, "html.parser")
+                pos_block = modal_soup.find("div", class_="sc-jSSkKI erILDw")
+                position = None
+                if pos_block:
+                    text = pos_block.get_text(strip=True).lower()
+                    if "front" in text:
+                        position = "fc"
+                    elif "back" in text:
+                        position = "bc"
+
+                close = modal.find_element(By.CSS_SELECTOR, "button")
+                driver.execute_script("arguments[0].click();", close)
+                time.sleep(0.2)
 
                 self.players.append({
-                    "name": name,
-                    "id": None,
-                    "team": team,
-                    "position": None,
-                    "salary": salary,
-                    "selected": selected,
-                    "form": form,
-                    "total_points": total_points,
-                    "weekly_stats": {}
-                })
+                        "name": name,
+                        "id": None,
+                        "team": team,
+                        "position": position,
+                        "salary": salary,
+                        "selected": selected,
+                        "form": form,
+                        "total_points": total_points,
+                        "weekly_stats": {}
+                    })
+
+                print(f"Added player: {name}, Team: {team}, Position: {position}")
 
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "table")))
 
@@ -251,7 +284,6 @@ class DataGenerator:
                             continue
 
                     self.players[player_index]["id"] = player["id"]
-                    self.players[player_index]["position"] = player["position"]["abbreviation"]
                     if self.players[player_index]["id"] is None:
                         print(roster_request, player["displayName"])
 
