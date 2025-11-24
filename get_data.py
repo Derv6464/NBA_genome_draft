@@ -17,7 +17,7 @@ class DataGenerator:
         self.nba_fantasy_url = "https://nbafantasy.nba.com/statistics"
         self.espn_v2_url = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams"
         self.espn_v3_url = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/"
-        self.messed_up_names = self.read_messed_up_names()
+        self.messed_up_names,self.espn_to_nba  = self.read_messed_up_names()
         self.players = []
         self.teams = []
 
@@ -40,6 +40,8 @@ class DataGenerator:
         self.players = self.read_player_data()
         self.teams = self.read_game_data()
 
+        return self.players, self.teams
+
     def ensure_data_folder(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
@@ -57,7 +59,7 @@ class DataGenerator:
     def read_messed_up_names(self):
         with open(f"{self.folder_path}/messed_up_name.json", "r", encoding="utf-8") as f:
             data = json.load(f)
-            return data
+            return data["players"], data["teams"]
 
     def get_player_data(self):
         options = Options()
@@ -197,7 +199,7 @@ class DataGenerator:
             self.teams.append({
                 "id": team["team"]["id"],
                 "name": team["team"]["displayName"],
-                "abbreviation": team["team"]["abbreviation"],
+                "abbreviation": self.espn_to_nba[team["team"]["abbreviation"]],
                 "game_dates": game_dates
             })
 
@@ -232,21 +234,17 @@ class DataGenerator:
     def make_player_stats(self, data):
         if not data.get("seasonTypes"):
             return {}
+        
         events_list = data["events"]
         event_dict = {}
-        game_stats_per_week = {
-            week: {
-                "total_point": 0,
-                "per_game": []
-            }
-            for week in range(1, 26)
-        }
+        game_stats_per_week = { week: { "total_point": 0, "per_game": [] } for week in range(1, 26) }
 
         for event_id, event in events_list.items():
             game_date = event.get("gameDate")
             event_dict[event_id] = game_date
 
         stats = data["seasonTypes"][0]["categories"]
+
         for month in stats:
             try:
                 if month.get("events"):
@@ -267,12 +265,14 @@ class DataGenerator:
 
     def get_player_stats(self):
         player_not_found = []
+
         if self.teams and self.players:
             for team in self.teams:
                 print(f"Fetching roster for team: {team['name']}")
                 roster_request = f"{self.espn_v2_url}/{team['id']}/roster"
                 response = requests.get(roster_request)
                 data = response.json()
+
                 for player in data["athletes"]:
                     player_index = self.search_player(player["displayName"])
                     if player_index is None:

@@ -14,7 +14,6 @@ class DataHandler:
         team = random.sample(self.front_court_players, 5) + random.sample(self.back_court_players, 5)
         return team
     
-
     def get_team_salary(self, team):
         return sum([float(p.get("salary")) for p in team])
     
@@ -39,3 +38,13 @@ class DataHandler:
             team = self.make_random_team()
             
         return team
+    
+    def get_players_match_count(self, player, week):
+
+        player_team = player.get("team")
+        for team in self.game_data:
+            if team.get("abbreviation") == player_team:
+                return len(team.get("game_dates").get(str(week)))
+    
+        return 0
+
