@@ -19,7 +19,7 @@ class DataHandler:
     
     def get_weekly_stats(self, player):
         return player.get("weekly_stats")
-    
+
     def check_player_per_team(self, team):
         for player in team:
             team_count = sum(1 for p in team if p.get("team") == player.get("team"))

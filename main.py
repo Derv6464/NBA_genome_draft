@@ -3,6 +3,7 @@ import json
 from get_data import DataGenerator
 from data_handler import DataHandler
 from fitness import Fitness
+from genetic_operators import GeneticOperators
 
 
 def main():
@@ -13,6 +14,7 @@ def main():
 
     handler = DataHandler(players, games, max_salary)
     fitness = Fitness(handler)
+    genetic_ops = GeneticOperators(handler)
     team = handler.make_random_valid_team()
     total_games = 0
     for player in team:
@@ -20,15 +22,10 @@ def main():
         print(player.get("name"), player.get("position"), player.get("team"))
 
     fitness.evaluate_team(team)
-    # for player in team:
-    #     stats = fitness.get_player_score(player)
-    #     print(f"Stats for {player.get('name')}: {stats}")
+    genetic_ops.mutate(team)
 
     print("team salary:", handler.get_team_salary(team))
     print("total games in week 1:", total_games)
-
-    
-
 
 if __name__ == "__main__":
     main()
