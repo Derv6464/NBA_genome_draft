@@ -287,7 +287,7 @@ class DataGenerator:
                     if self.players[player_index]["id"] is None:
                         print(roster_request, player["displayName"])
 
-                    stats_request = f"{self.espn_v3_url}{player["id"]}/gamelog?season=2026"
+                    stats_request = f"{self.espn_v3_url}{player['id']}/gamelog?season=2026"
                     stats_response = requests.get(stats_request)
                     stats_data = stats_response.json()
                     game_stats_per_week = self.make_player_stats(stats_data)
