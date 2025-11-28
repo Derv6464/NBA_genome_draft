@@ -37,6 +37,7 @@ class DataGenerator:
         self.get_player_stats()
 
     def get_existing_data(self):
+        ''' Reads existing data from JSON files '''
         self.players = self.read_player_data()
         self.teams = self.read_game_data()
 

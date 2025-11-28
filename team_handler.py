@@ -1,6 +1,6 @@
 import random
 
-class DataHandler:
+class TeamHandler:
     def __init__(self, player_data, game_data, max_salary):
         self.player_data = player_data
         self.game_data = game_data
@@ -25,7 +25,6 @@ class DataHandler:
             team_count = sum(1 for p in team if p.get("team") == player.get("team"))
             if team_count > 2:
                 return False
-
         return True
 
     def check_player_salary(self, team):
@@ -48,7 +47,7 @@ class DataHandler:
         return team
     
     def get_players_match_count(self, player, week):
-
+        ''' Returns the number of matches a player has in a given week '''
         player_team = player.get("team")
         for team in self.game_data:
             if team.get("abbreviation") == player_team:
