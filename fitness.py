@@ -1,5 +1,6 @@
 import data_handler
 
+
 class Fitness:
     def __init__(self, data_handler):
         self.data_handler = data_handler
@@ -21,10 +22,28 @@ class Fitness:
         total_weighted_score = sum(weighted_scores)
         game_penalty = sum(abs(gc - 3) * 10 for gc in game_counts)
 
-        fitness_score = total_weighted_score - salary_penalty - game_penalty
+        team_count_penalty = 0
+        team_counts = {}
+        for player in team:
+            player_team = player.get("team")
+            team_counts[player_team] = team_counts.get(player_team, 0) + 1
+        for team_name, count in team_counts.items():
+            if count > 2:
+                team_count_penalty += (count - 2) * 50
+
+        position_penalty = 0
+        fc_count = sum(1 for p in team if p.get("position") == "fc")
+        bc_count = sum(1 for p in team if p.get("position") == "bc")
+        if fc_count != 5:
+            position_penalty += abs(fc_count - 5) * 50
+        if bc_count != 5:
+            position_penalty += abs(bc_count - 5) * 50
+
+        fitness_score = total_weighted_score - salary_penalty - game_penalty - team_count_penalty - position_penalty
 
         print(f"\nFitness score: {fitness_score:.2f}, Salary: {total_salary}, "
-            f"Weighted Scores: {weighted_scores}, Game Counts: {game_counts}")
+            f"Weighted Scores: {weighted_scores}, Game Counts: {game_counts}, "
+            f"Team Count Penalty: {team_count_penalty}, Position Penalty: {position_penalty}")
         return fitness_score
 
     def weight_weeks(self, player_scores, total_weeks):

@@ -2,43 +2,26 @@ from data_handler import DataHandler
 import random
 
 class GeneticOperators:
-    def __init__(self, data_handler):
+    def __init__(self, data_handler, players):
         self.data_handler = data_handler
-
-    def filter_by_position_and_salary(self, position, remaining_salary):
-        if position == "fc":
-            candidates = self.data_handler.front_court_players
-        elif position == "bc":
-            candidates = self.data_handler.back_court_players
-
-        candidates = [p for p in candidates if float(p.get("salary")) <= remaining_salary]
-        return candidates
-
-    def filter_by_team_limit(self, candidates, current_teams, max_per_team=2):
-        def valid_team(player):
-            return current_teams.count(player.get("team")) < max_per_team
-        return [p for p in candidates if valid_team(p)]
+        self.players = players
 
     def mutate(self, team):
         team_size = len(team)
-        team_salary = sum(float(p.get("salary")) for p in team)
-
         random_player_index = random.randint(0, team_size - 1)
-        player_to_replace = team[random_player_index]
-        player_position = player_to_replace.get("position")
-        player_salary = float(player_to_replace.get("salary"))
-        remaining_salary = self.data_handler.max_salary - (team_salary - player_salary)
+        new_player = random.choice(self.players)
+        team[random_player_index] = new_player
 
-        candidates = self.filter_by_position_and_salary(player_position, remaining_salary)
+        print(f"Mutated team by replacing player at index {random_player_index} with {new_player.get('name')}")
+    
+    def crossover(self, team1, team2):
+        team_size = len(team1)
+        crossover_point = random.randint(1, team_size - 1)
 
-        current_teams = [p.get("team") for i, p in enumerate(team) if i != random_player_index]
-        candidates = self.filter_by_team_limit(candidates, current_teams)
+        temp1 = team1[crossover_point:].copy()
+        temp2 = team2[crossover_point:].copy()
+        
+        team1[crossover_point:] = temp2
+        team2[crossover_point:] = temp1
 
-        if not candidates:
-            return team
-
-        new_player = random.choice(candidates)
-        new_team = team.copy()
-        new_team[random_player_index] = new_player
-
-        return new_team
+        print(f"Crossover between teams at point {crossover_point}")
