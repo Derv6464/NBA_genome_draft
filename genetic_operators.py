@@ -1,9 +1,7 @@
-from data_handler import DataHandler
 import random
 
 class GeneticOperators:
-    def __init__(self, data_handler, players):
-        self.data_handler = data_handler
+    def __init__(self, players):
         self.players = players
 
     def mutate(self, team):

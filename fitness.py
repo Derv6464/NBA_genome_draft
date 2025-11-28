@@ -1,21 +1,21 @@
-import data_handler
+from team_handler import TeamHandler
 
 
 class Fitness:
-    def __init__(self, data_handler):
-        self.data_handler = data_handler
+    def __init__(self, team_handler: TeamHandler):
+        self.team_handler = team_handler
         
     def evaluate_team(self, team):
-        if not self.data_handler.check_team_validity(team):
+        if not self.team_handler.check_team_validity(team):
             return float('inf')
 
-        total_salary = self.data_handler.get_team_salary(team)
-        game_counts = [self.data_handler.get_players_match_count(player, 1) for player in team]
+        total_salary = self.team_handler.get_team_salary(team)
+        game_counts = [self.team_handler.get_players_match_count(player, 1) for player in team]
         player_scores = [self.get_player_score(player) for player in team]
         total_game_weeks = self.get_total_game_weeks(player_scores)
         weighted_scores = self.weight_weeks(player_scores, total_game_weeks)
 
-        salary_cap = self.data_handler.max_salary
+        salary_cap = self.team_handler.max_salary
         salary_penalty = 0
         if total_salary > salary_cap:
             salary_penalty = (total_salary - salary_cap) * 100
@@ -27,7 +27,7 @@ class Fitness:
         for player in team:
             player_team = player.get("team")
             team_counts[player_team] = team_counts.get(player_team, 0) + 1
-        for team_name, count in team_counts.items():
+        for _, count in team_counts.items():
             if count > 2:
                 team_count_penalty += (count - 2) * 50
 
@@ -76,7 +76,7 @@ class Fitness:
         return max_weeks
 
     def get_player_score(self, player):
-        stats = self.data_handler.get_weekly_stats(player)
+        stats = self.team_handler.get_weekly_stats(player)
         filtered_weeks = {}
         for week, data in stats.items():
             if data.get('per_game'): 

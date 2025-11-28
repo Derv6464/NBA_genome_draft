@@ -1,73 +1,37 @@
-import os
-import json
-from get_data import DataGenerator
-from data_handler import DataHandler
+from data_generator import DataGenerator
+from team_handler import TeamHandler
 from population import Population
-
 from fitness import Fitness
 from genetic_operators import GeneticOperators
 
 
-
 def main():
     max_salary = 100
-    data = DataGenerator("data")
 
-    players, games = data.get_existing_data()
+    #loading in player & game data
+    data_generator = DataGenerator("data")
+    players, games = data_generator.get_existing_data()
 
-    handler = DataHandler(players, games, max_salary)
+    team_handler = TeamHandler(players, games, max_salary)
+    fitness = Fitness(team_handler)
+    genetic_ops = GeneticOperators(players)
+    population = Population()
 
-    team = handler.get_best_players()
-    depths = [handler.get_best_players, handler.get_random_no_caps, handler.get_random_position_cap, handler.get_random_team_cap, handler.get_random_salary_cap]
-    fitness = Fitness(handler)
-    genetic_ops = GeneticOperators(handler, players)
-    team = handler.make_random_valid_team()
-    team2 = handler.make_random_valid_team()
-    total_games = 0
-    # for player in team:
-    #     total_games += handler.get_players_match_count(player, 1)
-    #     print(player.get("name"), player.get("position"), player.get("team"))
-
-    print("----- Team 1 -----")
-    for player in team:
-        print(player.get("name"))
+    team = team_handler.get_best_players()
+    depths = [team_handler.get_best_players, team_handler.get_random_no_caps, team_handler.get_random_position_cap, team_handler.get_random_team_cap, team_handler.get_random_salary_cap]
     
-    print("----- Team 2 -----")
-    for player in team2:
-        print(player.get("name"))
+    individuals = population.ramped_half_and_half(10, depths, team_handler.make_random_valid_team)
 
-    fitness.evaluate_team(team)
-    fitness.evaluate_team(team2)
-    genetic_ops.mutate(team)
-    genetic_ops.crossover(team, team2)
-    fitness.evaluate_team(team)
-    fitness.evaluate_team(team2)
+    for i, team in enumerate(individuals):
+        print(f"Team: {i}")
+        print(f"fitness: {fitness.evaluate_team(team)}")
+        print(f"Cost: {team_handler.get_team_salary(team)}")
+        print(f"is valid {team_handler.check_team_validity(team)}")
 
-    print("----- Team 1 -----")
-    for player in team:
-        print(player.get("name"))
-    
-    print("----- Team 2 -----")
-    for player in team2:
-        print(player.get("name"))
-
-    pop = Population()
-
-    individuals = pop.ramped_half_and_half(50, depths, handler.make_random_valid_team)
-    team = individuals[0]
-
-    valid = 0
-    invalid = 0
-
-    for team in individuals:
-        #for player in team:
-        #    print(player.get("name"), end=", ")
-        if handler.check_team_validity(team):
-            valid += 1
-        else:
-            invalid += 1
-
-    print(f"Valid teams: {valid}, Invalid teams: {invalid}")
+    #genetic_ops.mutate(team)
+    #genetic_ops.crossover(team, team2)
+   #fitness.evaluate_team(team)
+    #fitness.evaluate_team(team2)
 
 if __name__ == "__main__":
     main()
