@@ -39,7 +39,8 @@ def main():
     depths = [team_handler.get_best_players, team_handler.get_random_no_caps, team_handler.get_random_position_cap, team_handler.get_random_team_cap, team_handler.get_random_salary_cap]
     
     individuals = population.ramped_half_and_half(2000, depths, team_handler.make_random_valid_team)
-
+    random_wheel = population.make_wheel()
+    
     counter = 0
     while counter < episodes:
         individuals.sort(key=lambda team: team.calculate_fitness(), reverse=True)
