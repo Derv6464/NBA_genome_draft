@@ -20,6 +20,7 @@ class DataGenerator:
         self.messed_up_names,self.espn_to_nba  = self.read_messed_up_names()
         self.players = []
         self.teams = []
+        self.game_data = []
 
     def get_all_info(self):
         print("Fetching player data...")
@@ -31,17 +32,19 @@ class DataGenerator:
 
     def update_player_stats(self):
         print("Reading existing data...")
-        self.teams = self.read_game_data()
+        self.teams = self.read_team_data()
         self.players = self.read_player_data()
+        self.game_data = self.read_game_data()
         print("Updating player stats...")
         self.get_player_stats()
 
     def get_existing_data(self):
         ''' Reads existing data from JSON files '''
+        self.teams = self.read_team_data()
         self.players = self.read_player_data()
-        self.teams = self.read_game_data()
+        self.game_data = self.read_game_data()
 
-        return self.players, self.teams
+        return self.players, self.teams, self.game_data
 
     def ensure_data_folder(self):
         if not os.path.exists(self.folder_path):
@@ -54,6 +57,11 @@ class DataGenerator:
 
     def read_game_data(self):
         with open(f"{self.folder_path}/nba_game.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data
+        
+    def read_team_data(self):
+        with open(f"{self.folder_path}/nba_team.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
         
@@ -174,16 +182,18 @@ class DataGenerator:
             return 1
         
         week_number = (delta_days // 7) + 1
+        day_number = (delta_days % 7) + 1
 
         if week_number > 25:
             week_number = 25
 
-        return week_number
+        return week_number, day_number
 
     def get_game_data(self):
         response = requests.get(self.espn_v2_url)
         data = response.json()
         teams_list = data["sports"][0]["leagues"][0]["teams"]
+        game_dates = {week: {day: [] for day in range(1, 8)} for week in range(1, 26)}
 
         for team in teams_list:
             team_id = team["team"]["id"]
@@ -191,21 +201,24 @@ class DataGenerator:
             response = requests.get(self.espn_v2_url + f'/{team_id}/schedule?season=2026')
             data = response.json()
             games = data["events"]
-            game_dates = {week: [] for week in range(1, 26)}
+            
             for game in games:
                 game_date_str = game["date"]
-                week_number = self.get_week_from_date(game_date_str)
-                game_dates[week_number].append(game['shortName'])
+                week_number, day_number = self.get_week_from_date(game_date_str)
+                if game['shortName'] not in game_dates[week_number][day_number]:
+                    game_dates[week_number][day_number].append(game['shortName'])
 
             self.teams.append({
                 "id": team["team"]["id"],
                 "name": team["team"]["displayName"],
                 "abbreviation": self.espn_to_nba[team["team"]["abbreviation"]],
-                "game_dates": game_dates
             })
 
-        with open(f"{self.folder_path}/nba_game.json", "w", encoding="utf-8") as f:
+        with open(f"{self.folder_path}/nba_team.json", "w", encoding="utf-8") as f:
             json.dump(self.teams, f, ensure_ascii=False, indent=4)
+
+        with open(f"{self.folder_path}/nba_game.json", "w", encoding="utf-8") as f:
+            json.dump(game_dates, f, ensure_ascii=False, indent=4)
 
     def search_player(self, name):
         for i, player in enumerate(self.players):
@@ -251,7 +264,7 @@ class DataGenerator:
                 if month.get("events"):
                     for events in month["events"]:
                         event_id = events["eventId"]
-                        week_number = self.get_week_from_date(event_dict[event_id])
+                        week_number, _ = self.get_week_from_date(event_dict[event_id])
                         game_stats_per_week[week_number]["per_game"].append(events["stats"])
             except Exception as e:
                 print(f"Error processing month data: {e}")

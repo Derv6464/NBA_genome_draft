@@ -6,8 +6,8 @@ class Fitness:
         self.team_handler = team_handler
         
     def evaluate_team(self, team):
-        if not self.team_handler.check_team_validity(team):
-            return float('inf')
+        #if not self.team_handler.check_team_validity(team):
+        #    return float('inf')
 
         total_salary = self.team_handler.get_team_salary(team)
         game_counts = [self.team_handler.get_players_match_count(player, 1) for player in team]
@@ -18,7 +18,7 @@ class Fitness:
         salary_cap = self.team_handler.max_salary
         salary_penalty = 0
         if total_salary > salary_cap:
-            salary_penalty = (total_salary - salary_cap) * 100
+            salary_penalty = (total_salary - salary_cap) * 200
         total_weighted_score = sum(weighted_scores)
         game_penalty = sum(abs(gc - 3) * 10 for gc in game_counts)
 
@@ -31,6 +31,17 @@ class Fitness:
             if count > 2:
                 team_count_penalty += (count - 2) * 50
 
+        no_games = 0
+        for player in team:
+            if player in self.team_handler.has_no_data:
+                no_games += 100
+        
+        apperances_on_teams_penalty = 0
+        for player in team:
+            apperances_on_teams = sum(1 for p in team if p.get("id") == player.get("id"))
+            if apperances_on_teams > 1:
+                apperances_on_teams_penalty += 100
+
         position_penalty = 0
         fc_count = sum(1 for p in team if p.get("position") == "fc")
         bc_count = sum(1 for p in team if p.get("position") == "bc")
@@ -39,11 +50,11 @@ class Fitness:
         if bc_count != 5:
             position_penalty += abs(bc_count - 5) * 50
 
-        fitness_score = total_weighted_score - salary_penalty - game_penalty - team_count_penalty - position_penalty
+        fitness_score = total_weighted_score - salary_penalty - game_penalty - team_count_penalty - position_penalty - no_games - apperances_on_teams_penalty
 
-        print(f"\nFitness score: {fitness_score:.2f}, Salary: {total_salary}, "
-            f"Weighted Scores: {weighted_scores}, Game Counts: {game_counts}, "
-            f"Team Count Penalty: {team_count_penalty}, Position Penalty: {position_penalty}")
+        #print(f"\nFitness score: {fitness_score:.2f}, Salary: {total_salary}, "
+        #    f"Weighted Scores: {weighted_scores}, Game Counts: {game_counts}, "
+        #    f"Team Count Penalty: {team_count_penalty}, Position Penalty: {position_penalty}")
         return fitness_score
 
     def weight_weeks(self, player_scores, total_weeks):
@@ -83,4 +94,3 @@ class Fitness:
                 filtered_weeks[week] = data['total_point']
         
         return filtered_weeks if filtered_weeks else None
-

@@ -23,8 +23,16 @@ class Population:
 
         self.individuals = individuals
         return individuals
-
-
+    
+    #def make_roulette_wheel(self, fitness_function):
+    #    if self.individuals:
+    #        pop_scores = [(person, fitness(person)) for person in pop]
+#
+	#        total = sum(pop_scores[i][1] for i in range(len(pop_scores)))
+	#        wheel = [(person, fitness/total) for person, fitness in pop_scores]
+	#
+	#        return wheel
+  
 
 
         
