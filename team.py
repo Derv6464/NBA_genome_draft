@@ -3,10 +3,15 @@ from datetime import datetime
 class Team:
     def __init__(self, players: list, schedule):
         self.players = players
+        self.schedule = schedule
         self.valid_team = self.check_team_validity()
         self.salary = self.get_team_salary()
-        self.fitness_score = 0
-        self.schedule = schedule
+        self.fitness = self.calculate_fitness()
+
+    def re_evaluate(self):
+        self.valid_team = self.check_team_validity()
+        self.salary = self.get_team_salary()
+        self.fitness = self.calculate_fitness()
 
     def get_weeks_scores(self, start = 1, end=6):
         ''' Returns a list of all points scored from all players in the team for each week in the range '''
@@ -63,6 +68,61 @@ class Team:
         lineup = selected_fc + selected_bc + flex
 
         return lineup
+    
+    def get_max_score(self, week, day):
+        players_today = self.get_players_playing_on_day(week, day)
+
+        fc = [p for p in players_today if p["position"] == "fc" if p['weekly_stats'].get(str(week))]
+        bc = [p for p in players_today if p["position"] == "bc" if p['weekly_stats'].get(str(week))]
+
+        fc_scores = [(player, self.get_game_score(player['weekly_stats'][str(week)]["game_stats"][str(day)][0])) if (len(player['weekly_stats'][str(week)]["game_stats"][str(day)]) > 0) else (player, 0) for player in fc]
+        bc_scores = [(player, self.get_game_score(player['weekly_stats'][str(week)]["game_stats"][str(day)][0])) if (len(player['weekly_stats'][str(week)]["game_stats"][str(day)]) > 0) else (player, 0) for player in bc]
+        
+        fc_scores.sort(key=lambda x: x[1], reverse=True)
+        bc_scores.sort(key=lambda x: x[1], reverse=True)
+       
+        selected_fc = fc_scores[:2] if len(fc) >= 2 else fc_scores
+        selected_bc = bc_scores[:2] if len(bc) >= 2 else bc_scores
+
+        used_ids = {id(p[0]) for p in selected_fc + selected_bc}
+
+        remaining = [p for p in players_today if id(p) not in used_ids and p['weekly_stats'].get(str(week))]
+        remaining_scores = [(player, self.get_game_score(player['weekly_stats'][str(week)]["game_stats"][str(day)][0])) if (len(player['weekly_stats'][str(week)]["game_stats"][str(day)]) > 0) else (player, 0) for player in remaining]
+        flex = max(remaining_scores, key=lambda x: x[1:]) if remaining_scores else (None, 0)
+        total = sum(p[1] for p in selected_fc) + sum(p[1] for p in selected_bc) + flex[1]
+
+        #need to debug matchs being sorted into days laters
+        #for p in selected_fc:
+        #    print(f"FC: {p[0]['name']} - {p[1]} points")
+        #for p in selected_bc:
+        #    print(f"BC: {p[0]['name']} - {p[1]} points")
+        #if flex[0]:
+        #    print(f"Flex: {flex[0]['name']} - {flex[1]} points")
+    
+
+
+        return total
+
+
+        #print(f"Week {week}, Day {day} FC Scores: {fc_scores}")
+        #print(f"Week {week}, Day {day} BC Scores: {bc_scores}")
+
+        
+
+    def get_game_score(self, game_stats):
+        ''' ["Minutes","Field Goals Made-Attempted","Field Goal Percentage","3-Point Field Goals Made-Attempted",
+            "3-Point Field Goal Percentage","Free Throws Made-Attempted","Free Throw Percentage","Rebounds","Assists",
+            "Blocks","Steals","Fouls","Turnovers","Points"
+        '''
+
+        total_points = int(game_stats[13])
+        total_rebounds = int(game_stats[7])
+        total_assists = int(game_stats[8])
+        total_steals = int(game_stats[10])
+        total_blocks = int(game_stats[9])
+
+        fantasy_points = (total_points + total_rebounds + (total_assists*2) + (total_steals*3) + (total_blocks*3))
+        return fantasy_points
 
     def copy(self):
         return Team(self.players.copy(), self.schedule)
@@ -87,16 +147,19 @@ class Team:
     
     def calculate_fitness(self, salary_cap = 100):
         salary_penalty = self.get_salary_penalty(salary_cap) #penality on salary
-        #games_penalty = self.get_total_games_penalty() #penality on number of games played
-        games_penalty = self.get_range_games_penalty(1, 6)
+        games_penalty = self.get_total_games_penalty() #penality on number of games played
+        #games_penalty = self.get_range_games_penalty(1, 6)
 
         position_penalty = self.get_invalid_position_penalty() 
         duplication_penalty = self.get_duplicate_players_penalty() #if player appears more than once in team
 
         #game_counts = [self.get_players_match_count(player, 1) for player in self.players]
         player_scores = [self.get_player_score(player) for player in self.players]
+        #print(player_scores)
         total_game_weeks = self.get_total_game_weeks(player_scores)
+        #print(total_game_weeks)
         weighted_scores = self.weight_weeks(player_scores, total_game_weeks)
+        #print(weighted_scores)
 
         total_weighted_score = sum(weighted_scores)
         #game_penalty = sum(abs(gc - 3) * 10 for gc in game_counts)
@@ -177,7 +240,7 @@ class Team:
         stats = self.get_weekly_stats(player)
         filtered_weeks = {}
         for week, data in stats.items():
-            if data.get('per_game'): 
+            if data['total_point'] != 0: 
                 filtered_weeks[week] = data['total_point']
         
         return filtered_weeks if filtered_weeks else None

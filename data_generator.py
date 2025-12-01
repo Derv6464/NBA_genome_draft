@@ -235,12 +235,13 @@ class DataGenerator:
         total_assists = 0
         total_steals = 0
         total_blocks = 0
-        for stat in weeks_stats:
-            total_points += int(stat[13])
-            total_rebounds += int(stat[7])
-            total_assists += int(stat[8])
-            total_steals += int(stat[10])
-            total_blocks += int(stat[9])
+        for week in weeks_stats:
+            for day in weeks_stats[week]:
+                total_points += int(day[13])
+                total_rebounds += int(day[7])
+                total_assists += int(day[8])
+                total_steals += int(day[10])
+                total_blocks += int(day[9])
 
         fantasy_points = (total_points + total_rebounds + (total_assists*2) + (total_steals*3) + (total_blocks*3))
         return fantasy_points
@@ -251,7 +252,7 @@ class DataGenerator:
         
         events_list = data["events"]
         event_dict = {}
-        game_stats_per_week = { week: { "total_point": 0, "per_game": [] } for week in range(1, 26) }
+        game_stats_per_week = { week: { "total_point": 0, "game_stats" : {day: [] for day in range(1, 8)} } for week in range(1, 26) }
 
         for event_id, event in events_list.items():
             game_date = event.get("gameDate")
@@ -264,15 +265,15 @@ class DataGenerator:
                 if month.get("events"):
                     for events in month["events"]:
                         event_id = events["eventId"]
-                        week_number, _ = self.get_week_from_date(event_dict[event_id])
-                        game_stats_per_week[week_number]["per_game"].append(events["stats"])
+                        week_number, day_number = self.get_week_from_date(event_dict[event_id])
+                        game_stats_per_week[week_number]["game_stats"][day_number].append(events["stats"])
             except Exception as e:
                 print(f"Error processing month data: {e}")
                 print(data)
                 continue
 
         for week in game_stats_per_week:
-            total_fantasy_points = self.calc_weekly_point(game_stats_per_week[week]["per_game"])
+            total_fantasy_points = self.calc_weekly_point(game_stats_per_week[week]["game_stats"])
             game_stats_per_week[week]["total_point"] = total_fantasy_points
 
         return game_stats_per_week
@@ -313,3 +314,5 @@ class DataGenerator:
             print("Players not found in initial data:")
             for name in player_not_found:
                 print(name)
+        else:
+            print("Teams or players data is missing. Please fetch player and team data first.")

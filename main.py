@@ -8,6 +8,8 @@ from schedule import Schedule
 
 import random
 import json
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 def print_team(team):
     print(f"fitness: {team.calculate_fitness()}")
@@ -24,10 +26,12 @@ def read_comparion_file(file_path="data"):
 
 def main():
     max_salary = 100
-    episodes = 50
+    episodes = 30
 
     #loading in player & game data
     data_generator = DataGenerator("data")
+    #data_generator.update_player_stats()
+    
     players, teams, games = data_generator.get_existing_data()
 
     sch = Schedule(games)
@@ -38,15 +42,25 @@ def main():
 
     depths = [team_handler.get_best_players, team_handler.get_random_no_caps, team_handler.get_random_position_cap, team_handler.get_random_team_cap, team_handler.get_random_salary_cap]
     
-    individuals = population.ramped_half_and_half(2000, depths, team_handler.make_random_valid_team)
+    individuals = population.ramped_half_and_half(1000, depths, team_handler.make_random_valid_team)
     random_wheel = population.make_wheel()
-    
+    generation_stats = []
+    total_timer = datetime.now()
     counter = 0
     while counter < episodes:
-        individuals.sort(key=lambda team: team.calculate_fitness(), reverse=True)
-
+        ep_timer = datetime.now()
+        individuals.sort(key=lambda team: team.fitness, reverse=True)
+        generation_stats.append({
+            "generation": counter,
+            "best_fitness": individuals[0].fitness,
+            "average_fitness": sum(team.fitness for team in individuals) / len(individuals),
+            "worst_fitness": individuals[-1].fitness
+        })
         print(f"\n=== Generation {counter} ===")
-        print(f"Best fitness: {individuals[0].calculate_fitness()}")
+        print(f"Best fitness: {individuals[0].fitness}")
+        print(f"Average fitness: {sum(team.fitness for team in individuals) / len(individuals)}")
+        print(f"Worst fitness: {individuals[-1].fitness}")
+        #individuals[0].print_fitness_breakdown()
 
         next_generation = individuals[:len(individuals)//2]
 
@@ -54,17 +68,22 @@ def main():
             parent1 = random.choice(individuals[:5])
             parent2 = random.choice(individuals[:5])
             child1, child2 = genetic_ops.crossover(parent1.copy(), parent2.copy())
+            child1.re_evaluate()
+            child2.re_evaluate()
             next_generation.append(child1)
             next_generation.append(child2)
 
         for i in range(len(next_generation)):
             if random.random() < 0.2:
                 genetic_ops.mutate(next_generation[i].players)
+                next_generation[i].re_evaluate()
 
         individuals = next_generation
         counter += 1
+        print(f"Generation {counter} completed in {datetime.now() - ep_timer}")
 
-    best_team = max(individuals, key=lambda team: team.calculate_fitness())
+    print(f"\nTotal Time Taken: {datetime.now() - total_timer}")
+    best_team = max(individuals, key=lambda team: team.fitness)
 
     print("\n=== Final Best Team ===")
     print_team(best_team)
@@ -103,7 +122,31 @@ def main():
     print("dervla: ",dervlas_scores)
     print("domick: ", domincks_scores)
 
+    for week in range(3, 7):
+        dervla_total = 0
+        domick_total = 0
+        best_total = 0
+        print(f"\n=== Week {week} Comparison ===")
+        for day in range(1, 7):
+            dervla_total += dervlas_teams_ids[week-3].get_max_score(week,day)
+            domick_total += domicks_teams_ids[week-3].get_max_score(week,day)
+            best_total += best_team.get_max_score(week,day)
+ 
+        print(f"\nDervla's total week {week} score: {dervla_total}")
+        print(f"Domick's total week {week} score: {domick_total}")
+        print(f"Best total week {week} score: {best_total}")
+
     best_team.save_team()
+    #print(generation_stats)
+    plt.plot([stat["generation"] for stat in generation_stats], [stat["best_fitness"] for stat in generation_stats], label="Best Fitness")
+    plt.plot([stat["generation"] for stat in generation_stats], [stat["average_fitness"] for stat in generation_stats], label="Average Fitness")
+    plt.plot([stat["generation"] for stat in generation_stats], [stat["worst_fitness"] for stat in generation_stats], label="Worst Fitness")
+    plt.xlabel("Generation")
+    plt.ylabel("Fitness")
+    plt.title("Fitness over Generations")
+    plt.legend()
+    plt.show()
+
 
 if __name__ == "__main__":
     main()
