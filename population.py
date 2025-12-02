@@ -1,3 +1,5 @@
+import random
+
 class Population:
     def __init__(self):
         self.individuals = []
@@ -23,10 +25,29 @@ class Population:
 
         self.individuals = individuals
         return individuals
-
-
-
-
         
+    def make_wheel(self, individuals):
+        pop_scores = [(team, team.fitness) for team in individuals]
+        total = sum(pop_scores[i][1] for i in range(len(pop_scores)))
+        wheel = [(person, fitness/total) for person, fitness in pop_scores]
+	
+        return wheel
+	
 
-    
+    def selector(wheel):
+        pop = [person for person, _ in wheel]
+        percents = [percent for _, percent in wheel]
+        wheel_range = sum(percents)
+        cumulative_probs= []
+	
+        next_val = 0		
+        for percent in percents:
+            new_next_val = next_val+percent
+            cumulative_probs.append([next_val, new_next_val])
+            next_val = new_next_val
+		
+        r = random.uniform(0, wheel_range)
+	
+        for  WheelCream, cumulative_prob  in enumerate(cumulative_probs):
+            if r > (cumulative_prob[0]) and r < (cumulative_prob[1]):
+                return WheelCream
