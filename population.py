@@ -26,8 +26,8 @@ class Population:
         self.individuals = individuals
         return individuals
         
-    def make_wheel(self):
-        pop_scores = [(team, team.calculate_fitness()) for team in self.individuals]
+    def make_wheel(self, individuals):
+        pop_scores = [(team, team.fitness) for team in individuals]
         total = sum(pop_scores[i][1] for i in range(len(pop_scores)))
         wheel = [(person, fitness/total) for person, fitness in pop_scores]
 	

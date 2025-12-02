@@ -9,6 +9,7 @@ import json
 import requests
 import os
 from datetime import datetime, timedelta, timezone
+import dateutil
 
 class DataGenerator:
     def __init__(self, folder_path):
@@ -188,6 +189,39 @@ class DataGenerator:
             week_number = 25
 
         return week_number, day_number
+    
+    def extract_local_date(self,event):
+        """
+        Parse ESPN's 'shortDetail' string, e.g.:
+        '11/23 - 8:00 PM EST'
+        Return a proper date object with the local game date.
+        """
+        short = (
+            event.get("status", {})
+                 .get("type", {})
+                 .get("shortDetail", "")
+        )
+
+        # example: "11/23 - 8:00 PM EST"
+        # split: ["11/23", "8:00 PM EST"]
+        try:
+            date_part, time_tz = short.split(" - ")
+        except ValueError:
+            # fallback to ESPN UTC date
+            errors_parsing += 1
+            return datetime.fromisoformat(event["date"][:10])
+
+        # build a datetime string: "11/23 8:00 PM EST 2025"
+        year = event["date"][:4]
+        dt_str = f"{date_part} {time_tz} {year}"
+
+        # use dateutil to parse including timezone abbreviations
+        try:
+            dt = dateutil.parser.parse(dt_str)
+            return dt.date()
+        except:
+            errors_parsing += 1
+            return datetime.fromisoformat(event["date"][:10])
 
     def get_game_data(self):
         response = requests.get(self.espn_v2_url)
@@ -203,6 +237,7 @@ class DataGenerator:
             games = data["events"]
             
             for game in games:
+                print(extract_local_date(game))
                 game_date_str = game["date"]
                 week_number, day_number = self.get_week_from_date(game_date_str)
                 if game['shortName'] not in game_dates[week_number][day_number]:

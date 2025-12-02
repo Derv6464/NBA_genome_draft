@@ -26,7 +26,7 @@ def read_comparion_file(file_path="data"):
 
 def main():
     max_salary = 100
-    episodes = 30
+    episodes = 50
 
     #loading in player & game data
     data_generator = DataGenerator("data")
@@ -42,8 +42,8 @@ def main():
 
     depths = [team_handler.get_best_players, team_handler.get_random_no_caps, team_handler.get_random_position_cap, team_handler.get_random_team_cap, team_handler.get_random_salary_cap]
     
-    individuals = population.ramped_half_and_half(1000, depths, team_handler.make_random_valid_team)
-    random_wheel = population.make_wheel()
+    individuals = population.ramped_half_and_half(5000, depths, team_handler.make_random_valid_team)
+    random_wheel = population.make_wheel(individuals)
     generation_stats = []
     total_timer = datetime.now()
     counter = 0
