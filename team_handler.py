@@ -2,7 +2,7 @@ import random
 from team import Team
 
 class TeamHandler:
-    def __init__(self, player_data, game_data, max_salary):
+    def __init__(self, player_data, game_data, max_salary, generate_team_for_week):
         self.player_data = player_data
         self.game_data = game_data
         self.max_salary = max_salary
@@ -10,14 +10,15 @@ class TeamHandler:
         self.back_court_players = [p for p in player_data if p.get("position") in ["bc"]]
         self.unspecified_players = [p for p in player_data if p.get("position") not in ["fc", "bc"]]
         self.has_no_data = [p for p in self.player_data if not p.get("weekly_stats")]
+        self.generate_team_for_week = generate_team_for_week
 
     def make_team_from_ids(self, ids) -> Team:
         team =[player for player in self.player_data if (player.get("id")) and (player.get("id") in ids)]
-        return Team(team, self.game_data)
+        return Team(team, self.game_data, self.generate_team_for_week)
     
     def make_random_team(self) -> Team:
         team = random.sample(self.front_court_players, 5) + random.sample(self.back_court_players, 5)
-        return Team(team, self.game_data)
+        return Team(team, self.game_data, self.generate_team_for_week)
 
     def make_random_valid_team(self):
         team = self.make_random_team()
@@ -34,19 +35,19 @@ class TeamHandler:
         player_pool = [(player, int(player.get("total_points"))) for player in self.player_data if player not in self.has_no_data]
         player_pool.sort(key=lambda x: x[1], reverse=True)
         team = [player for player, points in player_pool[:10]]
-        return Team(team, self.game_data)
+        return Team(team, self.game_data, self.generate_team_for_week)
     
     def get_random_no_caps(self):
         ''' Depth 2 of "tree" 
         Selects a random team without salary, position or team caps'''
         team = random.sample(self.player_data, 10)
-        return Team(team, self.game_data)
+        return Team(team, self.game_data, self.generate_team_for_week)
     
     def get_random_position_cap(self):
         ''' Depth 3 of "tree"
         Selects a random team without salary or team caps'''
         team = random.sample(self.front_court_players, 5) + random.sample(self.back_court_players, 5)
-        return Team(team, self.game_data)
+        return Team(team, self.game_data, self.generate_team_for_week)
     
     def get_random_team_cap(self):
         ''' Depth 4 of "tree"

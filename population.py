@@ -32,22 +32,21 @@ class Population:
         wheel = [(person, fitness/total) for person, fitness in pop_scores]
 	
         return wheel
-	
 
-    def selector(wheel):
-        pop = [person for person, _ in wheel]
-        percents = [percent for _, percent in wheel]
-        wheel_range = sum(percents)
-        cumulative_probs= []
-	
-        next_val = 0		
-        for percent in percents:
-            new_next_val = next_val+percent
-            cumulative_probs.append([next_val, new_next_val])
-            next_val = new_next_val
-		
-        r = random.uniform(0, wheel_range)
-	
-        for  WheelCream, cumulative_prob  in enumerate(cumulative_probs):
-            if r > (cumulative_prob[0]) and r < (cumulative_prob[1]):
-                return WheelCream
+    def selector(self, wheel):
+        pop = [team for team, _ in wheel]
+        percents = [p for _, p in wheel]
+
+        cumulative_probs = []
+        cumulative = 0
+
+        for p in percents:
+            next_cumulative = cumulative + p
+            cumulative_probs.append((cumulative, next_cumulative))
+            cumulative = next_cumulative
+
+        r = random.random()
+
+        for i, (low, high) in enumerate(cumulative_probs):
+            if low <= r < high:
+                return pop[i]
