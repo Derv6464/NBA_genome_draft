@@ -10,6 +10,9 @@ import requests
 import os
 from datetime import datetime, timedelta, timezone
 import dateutil
+import zoneinfo
+
+PT = zoneinfo.ZoneInfo("America/Los_Angeles")
 
 class DataGenerator:
     def __init__(self, folder_path):
@@ -176,11 +179,13 @@ class DataGenerator:
             json.dump(self.players, f, ensure_ascii=False, indent=4)
 
     def get_week_from_date(self, date_str):
-        week1_start = datetime.fromisoformat("2025-10-20").replace(tzinfo=timezone.utc)
-        game_dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-        delta_days = (game_dt - week1_start).days
+        game_dt_utc = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        game_dt_pt = game_dt_utc.astimezone(PT)
+        week1_start_pt = datetime(2025, 10, 20, tzinfo=PT)
+        delta_days = (game_dt_pt.date() - week1_start_pt.date()).days
+
         if delta_days < 0:
-            return 1
+            return 1, 1
         
         week_number = (delta_days // 7) + 1
         day_number = (delta_days % 7) + 1
@@ -190,39 +195,6 @@ class DataGenerator:
 
         return week_number, day_number
     
-    def extract_local_date(self,event):
-        """
-        Parse ESPN's 'shortDetail' string, e.g.:
-        '11/23 - 8:00 PM EST'
-        Return a proper date object with the local game date.
-        """
-        short = (
-            event.get("status", {})
-                 .get("type", {})
-                 .get("shortDetail", "")
-        )
-
-        # example: "11/23 - 8:00 PM EST"
-        # split: ["11/23", "8:00 PM EST"]
-        try:
-            date_part, time_tz = short.split(" - ")
-        except ValueError:
-            # fallback to ESPN UTC date
-            errors_parsing += 1
-            return datetime.fromisoformat(event["date"][:10])
-
-        # build a datetime string: "11/23 8:00 PM EST 2025"
-        year = event["date"][:4]
-        dt_str = f"{date_part} {time_tz} {year}"
-
-        # use dateutil to parse including timezone abbreviations
-        try:
-            dt = dateutil.parser.parse(dt_str)
-            return dt.date()
-        except:
-            errors_parsing += 1
-            return datetime.fromisoformat(event["date"][:10])
-
     def get_game_data(self):
         response = requests.get(self.espn_v2_url)
         data = response.json()
@@ -237,9 +209,9 @@ class DataGenerator:
             games = data["events"]
             
             for game in games:
-                print(extract_local_date(game))
                 game_date_str = game["date"]
                 week_number, day_number = self.get_week_from_date(game_date_str)
+
                 if game['shortName'] not in game_dates[week_number][day_number]:
                     game_dates[week_number][day_number].append(game['shortName'])
 
@@ -351,3 +323,32 @@ class DataGenerator:
                 print(name)
         else:
             print("Teams or players data is missing. Please fetch player and team data first.")
+
+    def gp_teams_to_comparison(self, up_to_week):
+        with open(f"{self.folder_path}/gp_data.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        comparison_teams = dict()
+        for week_num in range(1,up_to_week+1):
+            week_data = data.get(f"week_{week_num}", {}).get("rankings", {})
+            for team in week_data:
+                team_name = f"rank_{team.get('place', 'unknown')}"
+                if team_name not in comparison_teams:
+                    comparison_teams[team_name] = {str(week) : [] for _ in range(10) for week in range(1, up_to_week+1)}
+                players = team.get("players", [])
+
+                player_ids = []
+                for player in players:
+                    player_index = self.search_player(player)
+                    if player_index is None:
+                        messed_up_name = self.messed_up_names.get(player)
+                        if messed_up_name:
+                            player_index = self.search_player(messed_up_name)
+                    player_ids.append(self.players[player_index]["id"])
+                
+                comparison_teams[team_name][str(week_num)] = player_ids
+
+       
+            
+        with open(f"{self.folder_path}/comparison_teams.json", "a", encoding="utf-8") as f:
+            json.dump(comparison_teams, f, ensure_ascii=False, indent=4)

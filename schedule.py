@@ -1,6 +1,13 @@
+import json 
 class Schedule:
     def __init__(self, schedule_data):
+        self.espn_to_nba  = self.read_messed_up_names()
         self.schedule_data = self.make_schedule(schedule_data)
+
+    def read_messed_up_names(self):
+        with open(f"data/messed_up_name.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data["teams"]
 
     def make_schedule(self, schedule_data):
         schedule = [[[] for _ in range(7)] for _ in range(26)] 
@@ -12,8 +19,8 @@ class Schedule:
                         home, away = game.split(' VS ')
                     else: 
                         home, away = game.split(' @ ')
-                    teams_playing.append(home)
-                    teams_playing.append(away)
+                    teams_playing.append(self.espn_to_nba[home])
+                    teams_playing.append(self.espn_to_nba[away])
                 schedule[int(week)-1][int(day)-1] = teams_playing
 
         return schedule
