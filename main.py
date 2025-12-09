@@ -10,6 +10,7 @@ import random
 import matplotlib.pyplot as plt
 from datetime import datetime
 import os
+import argparse
 
 def print_team(team: Team):
     print(f"fitness: {team.calculate_fitness()}")
@@ -18,12 +19,13 @@ def print_team(team: Team):
     for player in team.players:
         print(f"{player.get('name')} - {player.get('team')} - {player.get('position')} - Salary: {player.get('salary')} - Total Points: {player.get('total_points')}")
 
-def main():
-    max_salary = 100
-    episodes = 200
-    population_size = 10000
+def main(week, episodes, population_size, max_salary):
+    print(f"Starting Genetic Algorithm with Salary Cap: {max_salary}, Episodes: {episodes}, Population Size: {population_size} for week {week}")
+    max_salary = max_salary
+    episodes = episodes
+    population_size = population_size
     elitism_count = int(population_size * 0.001)
-    generate_team_for_week = 7
+    generate_team_for_week = week
 
     #loading in player & game data
     data_generator = DataGenerator("data")
@@ -94,7 +96,7 @@ def main():
 
     comparitor.compare_fitness(best_team)
     comparitor.compare_weekly_scores(best_team)
-    comparitor.compare_days_scores(best_team, [7], [1,2,3,4])
+    comparitor.compare_days_scores(best_team, [6], [1,2,3,4,5,6,7])
 
     best_team.save_team()
    
@@ -110,7 +112,13 @@ def main():
 
     comparitor.graph_fitness()
     comparitor.graph_weekly_scores()
-    comparitor.graph_days_scores(best_team, [7], [1,2,3,4])
+    comparitor.graph_days_scores(best_team, [generate_team_for_week], [1,2,3,4,5,6,7])
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-w', '--week', type=int, default=7, help='Week number to generate team for') 
+    parser.add_argument('-e', '--episodes', type=int, default=100, help='Number of generations to run')
+    parser.add_argument('-p', '--population', type=int, default=10000, help='Population size for each generation')
+    parser.add_argument('-s', '--salary', type=int, default=100, help='Maximum salary cap for the team')
+    args = parser.parse_args()
+    main(args.week, args.episodes, args.population, args.salary)
