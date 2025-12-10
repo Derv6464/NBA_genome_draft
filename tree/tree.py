@@ -144,10 +144,9 @@ class Tree:
             messed = {}
         
         all_ranking_errors = []
-        week_count = 0
+
 
         for week_name, week_info in weeks_data.items():
-            week_count += 1
             rankings = week_info["rankings"]
             
             if not rankings:
