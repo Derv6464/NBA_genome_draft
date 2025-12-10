@@ -153,7 +153,6 @@ def main(week, episodes, population_size, max_salary):
     for week_name, week_info in weeks_data.items():
         rankings = week_info.get("rankings", [])
         print(f"\n{week_name}:")
-        sch = best_tree.sch
         teams_with_scores = []
         for entry in rankings:
             actual_place = entry.get("place")
