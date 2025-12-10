@@ -189,7 +189,6 @@ class Tree:
                     pos_list = [p.get("position") for p in players]
                     print(f"[PosDebug] {week_name} | fc={fc_count_dbg} bc={bc_count_dbg} | positions={pos_list} | team={', '.join(player_names)}...")
 
-                is_valid = True
                 
                 teams_with_scores.append({
                     'actual_place': actual_place,
