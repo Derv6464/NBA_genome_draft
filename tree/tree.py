@@ -1,7 +1,5 @@
 import json
 from copy import deepcopy
-from team import Team
-
 class Tree:
     def __init__(self, root, sch, fitness):
         self.root = root
