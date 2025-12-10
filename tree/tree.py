@@ -135,7 +135,6 @@ class Tree:
 
     def calculate_fitness(self, data_points, schedule=None):
 
-        sch = schedule if schedule is not None else self.sch
 
         weeks_data = self.get_gp_ranking_data()
         try:
