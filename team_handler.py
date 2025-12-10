@@ -11,9 +11,12 @@ class TeamHandler:
         self.unspecified_players = [p for p in player_data if p.get("position") not in ["fc", "bc"]]
         self.has_no_data = [p for p in self.player_data if not p.get("weekly_stats")]
 
-    def make_team_from_ids(self, ids) -> Team:
+    def make_team_from_ids(self, ids, skip_team_creation=False):
         team =[player for player in self.player_data if (player.get("id")) and (player.get("id") in ids)]
+        if skip_team_creation:
+            return team  # Return just the player list
         return Team(team, self.game_data)
+
     
     def make_random_team(self) -> Team:
         team = random.sample(self.front_court_players, 5) + random.sample(self.back_court_players, 5)
