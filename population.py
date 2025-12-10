@@ -1,7 +1,5 @@
 import random
-from tree.tree import Tree
 from tree.treeNode import TreeNode
-
 OPERATORS = ["+", "-", "*" , "/", "min", "max"]
 # VARIABLES = [
 #     "weighted_score", "avg_weekly_score", "total_weeks",
