@@ -35,7 +35,7 @@ class GeneticOperators:
         nodes = self.nodes_with_parents(mutated_root)
         mutation_node, mutation_parent, which_child = random.choice(nodes)
         population_instance = population.Population()
-        new_subtree = population_instance.ramped_half_and_half(size =1, grow_funcs=max_depth, type = "fitness")[0]
+        new_subtree = population_instance.ramped_half_and_half(size=1, grow_funcs=max_depth, type = "fitness")[0]
 
         if mutation_parent is None:
             mutated_root = new_subtree
