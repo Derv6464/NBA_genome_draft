@@ -5,6 +5,7 @@ from team import Team
 from schedule import Schedule
 from tree.tree import Tree
 from comparitor import Comparitor
+from grapher import Grapher
 
 import matplotlib.pyplot as plt
 import random
@@ -15,19 +16,20 @@ class Runner:
         self.episode_count = episodes
         self.population_size = population_size
         self.players = player_data
-        self.sch = Schedule(games_data)
         self.teams = teams_data
         self.max_salary = max_salary
-        self.propulation = Population()
         self.elitism_count = int(population_size * 0.001)
-
+        self.generate_team_for_week = generate_team_for_week
+        
+        self.grapher = Grapher()
+        self.population = Population()
+        self.sch = Schedule(games_data)
         self.genetic_ops = GeneticOperators(self.players)
         self.team_handler = TeamHandler(self.players, self.sch, max_salary, generate_team_for_week)
-        self.comparitor = Comparitor(self.team_handler, comp_teams, 3, generate_team_for_week)
+        self.comparitor = Comparitor(self.team_handler, comp_teams, self.grapher, 3, generate_team_for_week)
 
 
-
-    def run_genetic_programming(self, episodes, players, sch, genetic_ops):
+    def run_genetic_programming(self):
         episodes = self.episode_count
         fitness_individuals = self.population.ramped_half_and_half(size=1000, grow_funcs=5, type="fitness")
         fitness_trees = [Tree(node, self.sch, fitness=None) for node in fitness_individuals]
@@ -35,7 +37,7 @@ class Runner:
         print("Evaluating fitness trees on historical data...\n")
         for i, tree in enumerate(fitness_trees):
             # print(f"Evaluating tree {i+1}/{len(fitness_trees)}...")
-            tree.calculate_fitness(self.population)
+            tree.calculate_fitness(self.players)
             if (i+1) % 100 == 0:
                 print(f"  Completed {i+1}/{len(fitness_trees)} trees")
             # print(f"Tree {i+1}: MSE = {tree.fitness:.2f}, Structure = {tree.to_string()}")
@@ -54,38 +56,36 @@ class Runner:
         while fitness_counter < episodes:
             # Recompute selection wheel each generation to reflect updated fitnesses
             fitness_wheel = self.population.make_wheel(fitness_trees)
-            crossover = False
-            parent1_index = self.population.selector(fitness_wheel)
-            parent2_index = self.population.selector(fitness_wheel)
-            if genetic_ops.should_crossover():
-                crossover = True
-                child1, child2 = genetic_ops.subtree_crossover(fitness_trees[parent1_index].copy(), fitness_trees[parent2_index].copy(), 5)
+            for _ in range(5):
+                if self.genetic_ops.should_crossover():
+                    parent1_sel = self.population.selector(fitness_wheel)
+                    parent2_sel = self.population.selector(fitness_wheel)
+                    parent1_tree = parent1_sel if isinstance(parent1_sel, Tree) else fitness_trees[parent1_sel]
+                    parent2_tree = parent2_sel if isinstance(parent2_sel, Tree) else fitness_trees[parent2_sel]
 
-                # Evaluate children fitness
-                child1.calculate_fitness(self.players)
-                child2.calculate_fitness(self.players)
+                    child1, child2 = self.genetic_ops.subtree_crossover(parent1_tree.copy(), parent2_tree.copy(), 5)
+                    child1.calculate_fitness(self.players)
+                    child2.calculate_fitness(self.players)
 
-                worst_tree1 = max(fitness_trees, key=lambda t: t.fitness)
-                if child1.fitness < worst_tree1.fitness:
-                    fitness_trees.remove(worst_tree1)
-                    fitness_trees.append(child1)
-                worst_tree2 = max(fitness_trees, key=lambda t: t.fitness)
-                if child2.fitness < worst_tree2.fitness:
-                    fitness_trees.remove(worst_tree2)
-                    fitness_trees.append(child2)
+                    worst_tree1 = max(fitness_trees, key=lambda t: t.fitness)
+                    if child1.fitness < worst_tree1.fitness:
+                        fitness_trees.remove(worst_tree1)
+                        fitness_trees.append(child1)
 
-            if genetic_ops.should_mutate() and not crossover:
-                parent_index = self.population.selector(fitness_wheel)
-                mutated_tree = genetic_ops.subtree_mutation(fitness_trees[parent_index].copy(), 5)
+                    worst_tree2 = max(fitness_trees, key=lambda t: t.fitness)
+                    if child2.fitness < worst_tree2.fitness:
+                        fitness_trees.remove(worst_tree2)
+                        fitness_trees.append(child2)
+                else:
+                    parent_sel = self.population.selector(fitness_wheel)
+                    parent_tree = parent_sel if isinstance(parent_sel, Tree) else fitness_trees[parent_sel]
+                    mutated_tree = self.genetic_ops.subtree_mutation(parent_tree.copy(), 5)
+                    mutated_tree.calculate_fitness(self.players)
 
-                # Evaluate mutated tree fitness
-                mutated_tree.calculate_fitness(self.players)
-
-                worst_tree = max(fitness_trees, key=lambda t: t.fitness)
-                if mutated_tree.fitness < worst_tree.fitness:
-                    fitness_trees.remove(worst_tree)
-                    fitness_trees.append(mutated_tree)
-
+                    worst_tree = max(fitness_trees, key=lambda t: t.fitness)
+                    if mutated_tree.fitness < worst_tree.fitness:
+                        fitness_trees.remove(worst_tree)
+                        fitness_trees.append(mutated_tree)
 
             # Track statistics for this generation
             best_fitness = min(t.fitness for t in fitness_trees)
@@ -104,26 +104,22 @@ class Runner:
         print(f"Ranking Error = {best_tree.fitness:.4f}")
         print(f"Structure = {best_tree.to_string()}")
 
+        graph_y_data = [('Best Ranking Error', best_fitness_per_gen),
+                        ('Average Ranking Error', avg_fitness_per_gen),
+                        ('Worst Ranking Error', worst_fitness_per_gen)]
+        
+        self.grapher.graph_line(
+            x_data=list(range(1, episodes + 1)),
+            y_data=graph_y_data,
+            x_label="Generation",
+            y_label="Ranking Error (Lower = Better)",
+            title="GP Evolution: Fitness Function Learning Performance"
+        )
 
-    def run_programing_results(self):
+        self.run_programing_results(best_tree)
 
-        # Plot evolution progress
-        print("\n=== Plotting Evolution Progress ===")
-        generations = list(range(1, episodes + 1))
-        plt.figure(figsize=(10, 6))
-        plt.plot(generations, best_fitness_per_gen, label='Best Ranking Error', color='green', linewidth=2)
-        plt.plot(generations, avg_fitness_per_gen, label='Average Ranking Error', color='blue', linewidth=2)
-        plt.plot(generations, worst_fitness_per_gen, label='Worst Ranking Error', color='red', linewidth=2)
 
-        plt.xlabel('Generation', fontsize=12)
-        plt.ylabel('Ranking Error (Lower = Better)', fontsize=12)
-        plt.title('GP Evolution: Fitness Function Learning Performance', fontsize=14)
-        plt.legend(fontsize=10)
-        plt.grid(True, alpha=0.3)
-        plt.tight_layout()
-        plt.show()
-
-        print("Graph displayed!")
+    def run_programing_results(self, best_tree):
 
         # Per-week ranking report for the best tree
         print("\n=== Per-Week Ranking Report (Best Tree) ===")
@@ -157,18 +153,8 @@ class Runner:
             for idx, t in enumerate(teams_with_scores, start=1):
                 print(f"  Pred {idx:>2} | Act {t['actual_place']:>2} | Score {t['predicted_score']:.4f} | {', '.join(t['players'][:3])}...")
 
-  
-        plt.plot([stat["generation"] for stat in generation_stats], [stat["best_fitness"] for stat in generation_stats], label="Best Fitness")
-        plt.plot([stat["generation"] for stat in generation_stats], [stat["average_fitness"] for stat in generation_stats], label="Average Fitness")
-        plt.plot([stat["generation"] for stat in generation_stats], [stat["worst_fitness"] for stat in generation_stats], label="Worst Fitness")
-        plt.xlabel("Generation")
-        plt.ylabel("Fitness")
-        plt.title("Fitness over Generations")
-        plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-1.png")
-        plt.savefig(file_path, bbox_inches='tight')
 
-    def run_genetic_algorithm(self):
+    def run_genetic_algorithm(self) -> Team:
         episodes = self.episode_count
         individuals = [self.team_handler.make_random_valid_team() for _ in range(self.population_size)]
         
@@ -223,9 +209,21 @@ class Runner:
 
         best_team.save_team()
 
+        graph_y_data = [("Best Fitness", [stat["best_fitness"] for stat in generation_stats]),
+                        ("Average Fitness", [stat["average_fitness"] for stat in generation_stats]),
+                        ("Worst Fitness", [stat["worst_fitness"] for stat in generation_stats])]
+
+        self.grapher.graph_line(
+            x_data=[stat["generation"] for stat in generation_stats],
+            y_data=graph_y_data,
+            x_label="Generation",
+            y_label="Fitness",
+            title="Fitness over Generations"
+        )
+
         return best_team
 
-    def run_algorithim_results(self, best_team):
+    def run_algorithim_results(self, best_team: Team):
         self.comparitor.compare_fitness(best_team)
         self.comparitor.compare_weekly_scores(best_team)
         self.comparitor.compare_days_scores(best_team, [self.generate_team_for_week], [1,2,3,4,5,6,7])
@@ -234,7 +232,7 @@ class Runner:
         self.comparitor.graph_weekly_scores()
         self.comparitor.graph_days_scores(best_team, [self.generate_team_for_week], [1,2,3,4,5,6,7])
 
-    def _print_team(team: Team):
+    def _print_team(self, team: Team):
         print(f"fitness: {team.calculate_fitness()}")
         print(f"Cost: {team.get_team_salary()}")
         print(f"is valid {team.check_team_validity()} (Salary Cap: {team.check_player_salary()}, Position Cap: {team.check_player_position()}, Team Cap: {team.check_player_per_team()})")

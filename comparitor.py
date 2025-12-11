@@ -1,24 +1,20 @@
 import json
 from team import Team
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-from datetime import datetime
-
 from grapher import Grapher
+from team_handler import TeamHandler
 
 class Comparitor:
-    def __init__(self, team_handler, comparison_teams_names, start_week=3, end_week=6):
+    def __init__(self, team_handler:TeamHandler, comparison_teams_names:list[str], grapher:Grapher, start_week=3, end_week=6):
         self.team_handler = team_handler
         self.comparison_teams = dict()
         self.start_week = start_week
         self.end_week = end_week
-        self.grapher = Grapher()
+        self.grapher = grapher
 
         for team in comparison_teams_names:
             self.comparison_teams[team] = self.make_comparison_teams(team)
 
-    def read_comparion_file(self, file_path="data"):
+    def read_comparion_file(self, file_path="data") -> dict:
         with open(f"{file_path}/comparison_teams.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
@@ -31,7 +27,7 @@ class Comparitor:
 
         return teams
 
-    def get_fitness_scores(self, week):
+    def get_fitness_scores(self, week:int) -> dict:
         fitness = dict()
         for team_name, teams in self.comparison_teams.items():
             team = teams[week - 3]
@@ -40,7 +36,7 @@ class Comparitor:
 
         return fitness
     
-    def print_table(self,table_dict, weeks, label):
+    def _print_table(self,table_dict: dict, weeks : list, label):
         rows = []
         header = [label] + [str(w) for w in weeks]
         rows.append(header)
@@ -80,9 +76,9 @@ class Comparitor:
 
         self.fitness_table = table
         print("\n=== Fitness Comparison Table ===")
-        self.print_table(table, weeks, "week")
+        self._print_table(table, weeks, "week")
 
-    def compare_weekly_scores(self, best_team):
+    def compare_weekly_scores(self, best_team: Team):
         weeks = list(range(self.start_week, self.end_week + 1))
 
         table = {"Best Team": []}
@@ -107,7 +103,7 @@ class Comparitor:
 
         self.weekly_score_table = table
         print("\n=== Weekly Score Comparison Table ===")
-        self.print_table(table, weeks, "week")
+        self._print_table(table, weeks, "week")
 
     def compare_days_scores(self, best_team, weeks, days):
         for week in weeks:
@@ -130,7 +126,7 @@ class Comparitor:
                     winning_team = max(self.comparison_teams.items(), key=lambda item: item[1][week - 3].get_max_score(week, day))[0]
                 table["Winning Team"].append(winning_team)
 
-            self.print_table(table, days, "day")
+            self._print_table(table, days, "day")
 
     def graph_fitness(self):
         weeks = list(range(self.start_week, self.end_week + 1))
@@ -159,7 +155,6 @@ class Comparitor:
         )
 
     def graph_days_scores(self, best_team, weeks, days):
-
         for week in weeks:
             table = {"Best Team": []}
             for team_name in self.comparison_teams.keys():

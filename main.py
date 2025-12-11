@@ -7,7 +7,7 @@ import os
 import argparse
 
 
-def main(week, episodes, population_size, max_salary, setup, rounds, ga, gp):
+def main(week, episodes, population_size, max_salary, setup, ga, gp):
     print(f"Starting Genetic Algorithm with Salary Cap: {max_salary}, Episodes: {episodes}, Population Size: {population_size} for week {week}")
     max_salary = max_salary
     episodes = episodes
@@ -27,7 +27,7 @@ def main(week, episodes, population_size, max_salary, setup, rounds, ga, gp):
     #data_generator.update_player_stats() # Uncomment to update player stats from API
     
     players, teams, games = data_generator.get_existing_data()
-    print(f"Loaded {len(players)} players, {len(teams)} teams, {len(games)} games\n")
+    print(f"Loaded {len(players)} players, {len(teams)} teams, {len(games)} weeks of games\n")
 
     comp_temas = ["Dervla", "Dominick", "Amy", "rank_1", "rank_2", "rank_3"]
     
@@ -38,11 +38,11 @@ def main(week, episodes, population_size, max_salary, setup, rounds, ga, gp):
     
     if ga:
         best_team = runner.run_genetic_algorithm()
+        runner.run_algorithim_results(best_team)
     elif gp:
-        best_fitness = runner.run_programing_results()
+        best_fitness = runner.run_genetic_programming()
     elif ga and gp:
-        best_fitness = runner.run_programing_results()
-        best_team = runner.run_genetic_programming(episodes, players, games, runner.genertic_ops)
+        pass
     else:
         raise ValueError("Either GA and/or GP must be true")
 
@@ -56,5 +56,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--population', type=int, default=10000, help='Population size for each generation')
     parser.add_argument('-s', '--salary', type=int, default=100, help='Maximum salary cap for the team')
     parser.add_argument('--setup', action='store_true', help='Whether to setup data from API')
+    parser.add_argument('--ga', action='store_true', help='Run Genetic Algorithm')
+    parser.add_argument('--gp', action='store_true', help='Run Genetic Programming')
     args = parser.parse_args()
-    main(args.week, args.episodes, args.population, args.salary, args.setup, rounds=0)
+    main(args.week, args.episodes, args.population, args.salary, args.setup, args.ga, args.gp)
