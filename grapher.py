@@ -7,7 +7,7 @@ class Grapher:
     def __init__(self):
         pass
 
-    def graph_hist_bar(self, x_data, y_data, category, cat_label, y_label, title, file_name):
+    def graph_hist_bar(self, x_data, y_data, category, cat_label, y_label, title):
         bar_width = 0.8 / len(x_data)
         x = np.arange(len(category))
 
@@ -22,7 +22,7 @@ class Grapher:
         plt.title(title)
         plt.xticks(x + bar_width * (len(x_data) - 1) / 2, category)
         plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-4.png")
+        file_path = os.path.join("data/images/", f"{title}-{datetime.now().strftime("%d_")}.png")
         plt.savefig(file_path, bbox_inches='tight')
 
     def graph_line(self, x_data, y_data, x_label, y_label, title, file_name):
