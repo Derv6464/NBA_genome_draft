@@ -19,14 +19,19 @@ def main(week, episodes, population_size, max_salary, setup, ga, gp):
     comp_temas = ["Dervla", "Dominick", "Amy", "rank_1", "rank_2", "rank_3"]
     
     runner = Runner(episodes, population_size, players, games, teams, max_salary, week, comp_temas)
-    
-    if ga:
-        best_team = runner.run_genetic_algorithm()
+
+    if ga and gp:
+        best_tree, score_team_with_evolved_function = runner.run_genetic_programming()
+        runner.run_programing_results(best_tree)
+
+        best_team = runner.run_genetic_algorithm(fitness_func=score_team_with_evolved_function)
+        runner.run_algorithim_results(best_team)
+    elif ga:
+        best_team= runner.run_genetic_algorithm()
         runner.run_algorithim_results(best_team)
     elif gp:
-        best_fitness = runner.run_genetic_programming()
-    elif ga and gp:
-        pass
+        best_fitness, _ = runner.run_genetic_programming()
+        runner.run_programing_results(best_fitness)
     else:
         raise ValueError("Either GA and/or GP must be true")
 

@@ -2,28 +2,24 @@ from datetime import datetime
 from schedule import Schedule
 
 class Team:
-    def __init__(self, players: list, schedule: Schedule, generate_team_for_week):
+    def __init__(self, players: list, schedule: Schedule, generate_team_for_week, fitness_func=None):
         self.players = players
         self.schedule = schedule
         self.valid_team = self.check_team_validity()
         self.salary = self._get_team_salary()
         self.generate_team_for_week = generate_team_for_week
-        self.fitness = self._calculate_fitness()
+        self.fitness_func = fitness_func
+        if fitness_func:
+            self.fitness = fitness_func(self)
+        else:
+            self.fitness = self._calculate_fitness()
 
     def re_evaluate(self):
         self.valid_team = self.check_team_validity()
-        self.salary = self.get_team_salary()
-        self.fitness = self.calculate_fitness()
+        self.salary = self._get_team_salary()
+        self.fitness = self.fitness
 
-    def get_weeks_scores(self, start = 1, end=6) -> list[int]:
-        ''' Returns a list of all points scored from all players in the team for each week in the range '''
-        scores = [0 for _ in range(26)]
-        for week in range(start, end + 1):
-            scores[week-1] = self.get_week_score(week)
-        
-        return scores
-    
-    def _get_week_score(self, week) -> int:
+    def get_week_score(self, week) -> int:
         ''' Returns the total points scored by all players in the team for a given week '''
         return sum(player["weekly_stats"][str(week)]["total_point"] for player in self.players if player.get("weekly_stats"))
     
@@ -54,7 +50,7 @@ class Team:
     def _get_max_active_players(self, week: int, day: int) -> list[dict]:
         '''Return the maximum valid lineup for that specific day.'''
     
-        players_today = self.get_players_playing_on_day(week, day)
+        players_today = self._get_players_playing_on_day(week, day)
 
         fc = [p for p in players_today if p["position"] == "fc"]
         bc = [p for p in players_today if p["position"] == "bc"]
@@ -72,7 +68,7 @@ class Team:
     
     def get_max_score(self, week:int, day:int) -> int:
         '''Return the maximum score for that specific day.'''
-        players_today = self.get_players_playing_on_day(week, day)
+        players_today = self._get_players_playing_on_day(week, day)
 
         fc = [p for p in players_today if p["position"] == "fc" if p['weekly_stats'].get(str(week))]
         bc = [p for p in players_today if p["position"] == "bc" if p['weekly_stats'].get(str(week))]
@@ -111,7 +107,7 @@ class Team:
         return fantasy_points
 
     def copy(self) -> 'Team':
-        return Team(self.players.copy(), self.schedule, self.generate_team_for_week)
+        return Team(self.players.copy(), self.schedule, self.generate_team_for_week, self.fitness_func)
     
     def check_player_per_team(self) -> bool:
         for player in self.players:
@@ -121,7 +117,7 @@ class Team:
         return True
 
     def check_player_salary(self, salary = 100) -> bool:
-        return self.get_team_salary() <= salary
+        return self._get_team_salary() <= salary
     
     def check_player_position(self) -> bool:
         front_court_count = sum(1 for p in self.players if p.get("position") == "fc")
@@ -184,7 +180,7 @@ class Team:
         return max_weeks
 
     def _get_player_score(self, player: dict) -> dict | None:
-        stats = self.get_weekly_stats(player)
+        stats = self._get_weekly_stats(player)
         filtered_weeks = {}
         for week, data in stats.items():
             if data['total_point'] != 0: 
@@ -196,7 +192,7 @@ class Team:
         '''Calculate penalty based on number of games played in a week.'''
         total_penalty = 0
         for day in range(1, 8):
-            active_players = self.get_max_active_players(week, day)
+            active_players = self._get_max_active_players(week, day)
             total_penalty += max(0, 5 - len(active_players))
 
         return total_penalty
@@ -256,8 +252,8 @@ class Team:
 
         data = {
             "run" : datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "fitness": self.calculate_fitness(),
-            "salary": self.get_team_salary(),
+            "fitness": self._calculate_fitness(),
+            "salary": self._get_team_salary(),
             "players": [player.get("id") for player  in self.players]
         }
         with open(file_path, 'a', encoding='utf-8') as f:

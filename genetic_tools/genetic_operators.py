@@ -1,5 +1,5 @@
 import random
-import population
+import genetic_tools.population as population
 from tree.tree import Tree
 from tree.treeNode import TreeNode
 from team import Team

@@ -1,11 +1,11 @@
 from team_handler import TeamHandler
-from population import Population
-from genetic_operators import GeneticOperators
+from genetic_tools.population import Population
+from genetic_tools.genetic_operators import GeneticOperators
 from team import Team
 from schedule import Schedule
 from tree.tree import Tree
-from comparitor import Comparitor
-from grapher import Grapher
+from analysis_tools.comparitor import Comparitor
+from analysis_tools.grapher import Grapher
 
 import matplotlib.pyplot as plt
 import random
@@ -116,7 +116,12 @@ class Runner:
             title="GP Evolution: Fitness Function Learning Performance"
         )
 
-        self.run_programing_results(best_tree)
+        def score_team_with_evolved_function(team : Team) -> float:
+            """Score a team using the evolved fitness tree function."""
+            features = best_tree.get_team_features(team.players, target_week=self.generate_team_for_week)
+            return best_tree.root.evaluate(features)
+        
+        return best_tree, score_team_with_evolved_function
 
 
     def run_programing_results(self, best_tree):
@@ -154,8 +159,11 @@ class Runner:
                 print(f"  Pred {idx:>2} | Act {t['actual_place']:>2} | Score {t['predicted_score']:.4f} | {', '.join(t['players'][:3])}...")
 
 
-    def run_genetic_algorithm(self) -> Team:
+    def run_genetic_algorithm(self, fitness_func = None) -> Team:
         episodes = self.episode_count
+        if fitness_func:
+            self.team_handler.update_fitness_function(fitness_func)
+
         individuals = [self.team_handler.make_random_valid_team() for _ in range(self.population_size)]
         
         generation_stats = []

@@ -1,6 +1,6 @@
 import json
 from team import Team
-from grapher import Grapher
+from analysis_tools.grapher import Grapher
 from team_handler import TeamHandler
 
 class Comparitor:
