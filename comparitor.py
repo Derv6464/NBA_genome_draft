@@ -45,7 +45,6 @@ class Comparitor:
         for team_name, values in table_dict.items():
             rows.append([team_name] + [str(v) for v in values])
 
-
         col_widths = [max(len(row[col]) for row in rows) for col in range(len(rows[0]))]
 
         for row in rows:
@@ -54,7 +53,6 @@ class Comparitor:
     
     def compare_fitness(self, best_team):
         weeks = list(range(self.start_week, self.end_week + 1))
-
 
         table = {"Best Team": []}
         for team_name in self.comparison_teams.keys():
@@ -137,12 +135,8 @@ class Comparitor:
         weeks = list(range(self.start_week, self.end_week + 1))
         teams = [team for team in self.fitness_table.keys() if team != "Winning Team"]
 
-        # width of each bar inside a week
         bar_width = 0.8 / len(teams)
-
-        # positions of each week on x-axis
         x = np.arange(len(weeks))
-
         plt.figure()
 
         for i, team_name in enumerate(teams):
@@ -179,7 +173,6 @@ class Comparitor:
         plt.savefig(file_path, bbox_inches='tight')
 
     def graph_days_scores(self, best_team, weeks, days):
-
         for week in weeks:
             table = {"Best Team": []}
             for team_name in self.comparison_teams.keys():

@@ -26,13 +26,14 @@ class DataGenerator:
         self.teams = []
         self.game_data = []
 
-    def get_all_info(self):
+    def get_all_info(self, week):
         print("Fetching player data...")
         self.get_player_data()
         print("Fetching game data...")
         self.get_game_data()
         print("Updating player stats...")
         self.get_player_stats()
+        self.gp_teams_to_comparison(up_to_week=week)
 
     def update_player_stats(self):
         print("Reading existing data...")
