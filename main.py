@@ -4,7 +4,7 @@ from population import Population
 from genetic_operators import GeneticOperators
 from team import Team
 from schedule import Schedule
-from tree import Tree
+from tree.tree import Tree
 from comparitor import Comparitor
 
 import random
@@ -33,16 +33,19 @@ def main(week, episodes, population_size, max_salary):
     #loading in player & game data
     print("Loading player and game data...")
     data_generator = DataGenerator("data")
+    
     #data_generator.get_game_data()
     #data_generator.update_player_stats() # Uncomment to update player stats from API
     
     players, teams, games = data_generator.get_existing_data()
     print(f"Loaded {len(players)} players, {len(teams)} teams, {len(games)} games\n")
 
+
     sch = Schedule(games)
     team_handler = TeamHandler(players, sch, max_salary, generate_team_for_week)
     genetic_ops = GeneticOperators(players)
     population = Population()
+    # data_generator.gp_teams_to_comparison(7)
     comparitor = Comparitor(team_handler, ["Dervla", "Dominick", "Amy", "rank_1", "rank_2", "rank_3"], 3, 7)
 
     #depths = [team_handler.get_best_players, team_handler.get_random_no_caps, team_handler.get_random_position_cap, team_handler.get_random_team_cap, team_handler.get_random_salary_cap]
@@ -52,7 +55,7 @@ def main(week, episodes, population_size, max_salary):
 
     depths = [team_handler.get_best_players, team_handler.get_random_no_caps, team_handler.get_random_position_cap, team_handler.get_random_team_cap, team_handler.get_random_salary_cap]
     
-    fitness_individuals = population.ramped_half_and_half(size=1000, grow_funcs=5, type="fitness")
+    fitness_individuals = population.ramped_half_and_half(size=population_size, grow_funcs=5, type="fitness")
     fitness_trees = [Tree(node, sch, fitness=None) for node in fitness_individuals]
     
     print("Evaluating fitness trees on historical data...\n")
@@ -75,40 +78,42 @@ def main(week, episodes, population_size, max_salary):
     worst_fitness_per_gen = []
     
     fitness_counter = 0
+    
     while fitness_counter < episodes:
         # Recompute selection wheel each generation to reflect updated fitnesses
         fitness_wheel = population.make_wheel(fitness_trees)
-        crossover = False
-        parent1_index = population.selector(fitness_wheel)
-        parent2_index = population.selector(fitness_wheel)
-        if genetic_ops.should_crossover():
-            crossover = True
-            child1, child2 = genetic_ops.subtree_crossover(fitness_trees[parent1_index].copy(), fitness_trees[parent2_index].copy(), 5)
-            
-            # Evaluate children fitness
-            child1.calculate_fitness(players)
-            child2.calculate_fitness(players)
-            
-            worst_tree1 = max(fitness_trees, key=lambda t: t.fitness)
-            if child1.fitness < worst_tree1.fitness:
-                fitness_trees.remove(worst_tree1)
-                fitness_trees.append(child1)
-            worst_tree2 = max(fitness_trees, key=lambda t: t.fitness)
-            if child2.fitness < worst_tree2.fitness:
-                fitness_trees.remove(worst_tree2)
-                fitness_trees.append(child2)
         
-        if genetic_ops.should_mutate() and not crossover:
-            parent_index = population.selector(fitness_wheel)
-            mutated_tree = genetic_ops.subtree_mutation(fitness_trees[parent_index].copy(), 5)
-            
-            # Evaluate mutated tree fitness
-            mutated_tree.calculate_fitness(players)
-            
-            worst_tree = max(fitness_trees, key=lambda t: t.fitness)
-            if mutated_tree.fitness < worst_tree.fitness:
-                fitness_trees.remove(worst_tree)
-                fitness_trees.append(mutated_tree)
+        # Always perform 5 breeding operations per generation
+        for _ in range(5):
+            if genetic_ops.should_crossover():
+                parent1_sel = population.selector(fitness_wheel)
+                parent2_sel = population.selector(fitness_wheel)
+                parent1_tree = parent1_sel if isinstance(parent1_sel, Tree) else fitness_trees[parent1_sel]
+                parent2_tree = parent2_sel if isinstance(parent2_sel, Tree) else fitness_trees[parent2_sel]
+                
+                child1, child2 = genetic_ops.subtree_crossover(parent1_tree.copy(), parent2_tree.copy(), 5)
+                child1.calculate_fitness(players)
+                child2.calculate_fitness(players)
+                
+                worst_tree1 = max(fitness_trees, key=lambda t: t.fitness)
+                if child1.fitness < worst_tree1.fitness:
+                    fitness_trees.remove(worst_tree1)
+                    fitness_trees.append(child1)
+                    
+                worst_tree2 = max(fitness_trees, key=lambda t: t.fitness)
+                if child2.fitness < worst_tree2.fitness:
+                    fitness_trees.remove(worst_tree2)
+                    fitness_trees.append(child2)
+            else:
+                parent_sel = population.selector(fitness_wheel)
+                parent_tree = parent_sel if isinstance(parent_sel, Tree) else fitness_trees[parent_sel]
+                mutated_tree = genetic_ops.subtree_mutation(parent_tree.copy(), 5)
+                mutated_tree.calculate_fitness(players)
+                
+                worst_tree = max(fitness_trees, key=lambda t: t.fitness)
+                if mutated_tree.fitness < worst_tree.fitness:
+                    fitness_trees.remove(worst_tree)
+                    fitness_trees.append(mutated_tree)
 
         
         # Track statistics for this generation
@@ -119,6 +124,9 @@ def main(week, episodes, population_size, max_salary):
         best_fitness_per_gen.append(best_fitness)
         avg_fitness_per_gen.append(avg_fitness)
         worst_fitness_per_gen.append(worst_fitness)
+        
+        if fitness_counter % 5 == 0:
+            print(f"Gen {fitness_counter}: Best={best_fitness:.4f}, Avg={avg_fitness:.4f}, Worst={worst_fitness:.4f}")
         
         fitness_counter += 1
     
@@ -139,9 +147,13 @@ def main(week, episodes, population_size, max_salary):
     plt.xlabel('Generation', fontsize=12)
     plt.ylabel('Ranking Error (Lower = Better)', fontsize=12)
     plt.title('GP Evolution: Fitness Function Learning Performance', fontsize=14)
+
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
+    timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+    file_path = os.path.join("data/plots/", f"{timestamp}-fitness-tree-ep{episodes}.png")
+    plt.savefig(file_path, bbox_inches='tight')
     plt.show()
     
     print("Graph displayed!")
@@ -179,6 +191,17 @@ def main(week, episodes, population_size, max_salary):
             print(f"  Pred {idx:>2} | Act {t['actual_place']:>2} | Score {t['predicted_score']:.4f} | {', '.join(t['players'][:3])}...")
 
     individuals = population.ramped_half_and_half(2000, depths, team_handler.make_random_valid_team)
+    
+    # Calculate team fitness using the evolved ranking function
+    def score_team_with_evolved_function(team):
+        """Score a team using the evolved fitness tree function."""
+        features = best_tree.get_team_features(team.players, target_week=generate_team_for_week)
+        return best_tree.root.evaluate(features)
+    
+    # Initial scoring with evolved function
+    for team in individuals:
+        team.fitness = score_team_with_evolved_function(team)
+    
     random_wheel = population.make_wheel(individuals)
 
     generation_stats = []
@@ -195,9 +218,9 @@ def main(week, episodes, population_size, max_salary):
         })
 
         print(f"\n=== Generation {counter} ===")
-        print(f"Best fitness: {individuals[0].fitness}")
-        print(f"Average fitness: {sum(team.fitness for team in individuals) / len(individuals)}")
-        print(f"Worst fitness: {individuals[-1].fitness}")
+        print(f"Best evolved score: {individuals[0].fitness:.4f}")
+        print(f"Average evolved score: {sum(team.fitness for team in individuals) / len(individuals):.4f}")
+        print(f"Worst evolved score: {individuals[-1].fitness:.4f}")
 
         next_generation = [team.copy() for team in individuals[:elitism_count]]
         wheel = population.make_wheel(individuals)
@@ -210,15 +233,17 @@ def main(week, episodes, population_size, max_salary):
             random.shuffle(parent2.players)
 
             child1, child2 = genetic_ops.crossover(parent1.copy(), parent2.copy())
-            child1.re_evaluate()
-            child2.re_evaluate()
+            # Score children with evolved function instead of default fitness
+            child1.fitness = score_team_with_evolved_function(child1)
+            child2.fitness = score_team_with_evolved_function(child2)
             next_generation.append(child1)
             next_generation.append(child2)
 
         for i in range(elitism_count, len(next_generation)):
             if random.random() < 0.2:
                 genetic_ops.mutate(next_generation[i].players)
-                next_generation[i].re_evaluate()
+                # Rescore after mutation with evolved function
+                next_generation[i].fitness = score_team_with_evolved_function(next_generation[i])
 
         individuals = next_generation
         counter += 1
@@ -227,7 +252,8 @@ def main(week, episodes, population_size, max_salary):
     print(f"\nTotal Time Taken: {datetime.now() - total_timer}")
     best_team = max(individuals, key=lambda team: team.fitness)
 
-    print("\n=== Final Best Team ===")
+    print("\n=== Final Best Team (Evolved Fitness) ===")
+    print(f"Evolved Score: {best_team.fitness:.4f}")
     print_team(best_team)
 
     comparitor.compare_fitness(best_team)
@@ -243,7 +269,8 @@ def main(week, episodes, population_size, max_salary):
     plt.ylabel("Fitness")
     plt.title("Fitness over Generations")
     plt.legend()
-    file_path = os.path.join("data/images/", f"{datetime.now()}-1.png")
+    timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+    file_path = os.path.join("data/images/", f"{timestamp}-1.png")
     plt.savefig(file_path, bbox_inches='tight')
 
     comparitor.graph_fitness()

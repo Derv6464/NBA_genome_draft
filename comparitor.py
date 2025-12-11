@@ -154,7 +154,8 @@ class Comparitor:
         plt.title("Fitness Comparison by Week (Histogram)")
         plt.xticks(x + bar_width * (len(teams)-1) / 2, weeks)
         plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-2.png")
+        timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+        file_path = os.path.join("data/images/", f"{timestamp}-2.png")
         plt.savefig(file_path, bbox_inches='tight')
 
     def graph_weekly_scores(self):
@@ -175,7 +176,8 @@ class Comparitor:
         plt.title("Weekly Score Comparison by Week (Histogram)")
         plt.xticks(x + bar_width * (len(teams)-1) / 2, weeks)
         plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-2.png")
+        timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+        file_path = os.path.join("data/images/", f"{timestamp}-2.png")
         plt.savefig(file_path, bbox_inches='tight')
 
     def graph_days_scores(self, best_team, weeks, days):
@@ -209,6 +211,7 @@ class Comparitor:
         plt.title(f"Max Possible Scores by Day – Week {week}")
         plt.xticks(x + bar_width * (len(teams) - 1) / 2, days)
         plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-4.png")
+        timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+        file_path = os.path.join("data/images/", f"{timestamp}-4.png")
         plt.savefig(file_path, bbox_inches='tight')
 
