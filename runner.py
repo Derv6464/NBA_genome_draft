@@ -20,7 +20,7 @@ class Runner:
         self.max_salary = max_salary
         self.elitism_count = int(population_size * 0.001)
         self.generate_team_for_week = generate_team_for_week
-        
+
         self.grapher = Grapher()
         self.population = Population()
         self.sch = Schedule(games_data)
@@ -233,8 +233,8 @@ class Runner:
         self.comparitor.graph_days_scores(best_team, [self.generate_team_for_week], [1,2,3,4,5,6,7])
 
     def _print_team(self, team: Team):
-        print(f"fitness: {team.calculate_fitness()}")
-        print(f"Cost: {team.get_team_salary()}")
+        print(f"fitness: {team.fitness}")
+        print(f"Cost: {team.salary}")
         print(f"is valid {team.check_team_validity()} (Salary Cap: {team.check_player_salary()}, Position Cap: {team.check_player_position()}, Team Cap: {team.check_player_per_team()})")
         for player in team.players:
             print(f"{player.get('name')} - {player.get('team')} - {player.get('position')} - Salary: {player.get('salary')} - Total Points: {player.get('total_points')}")

@@ -42,7 +42,7 @@ class DataGenerator:
         print("Updating player stats...")
         self._get_player_stats()
 
-    def get_existing_data(self) -> tuple[dict, dict, dict]:
+    def get_existing_data(self) -> tuple[list, list, dict]:
         ''' Reads existing data from JSON files '''
         self.teams = self._read_team_data()
         self.players = self._read_player_data()
@@ -54,7 +54,7 @@ class DataGenerator:
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
 
-    def _read_player_data(self) -> dict:
+    def _read_player_data(self) -> list:
         with open(f"{self.folder_path}/nba_players.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
@@ -64,12 +64,12 @@ class DataGenerator:
             data = json.load(f)
             return data
         
-    def _read_team_data(self) -> dict:
+    def _read_team_data(self) -> list:
         with open(f"{self.folder_path}/nba_team.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
         
-    def _read_messed_up_names(self):
+    def _read_messed_up_names(self) -> tuple[dict, dict]:
         with open(f"{self.folder_path}/messed_up_name.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data["players"], data["teams"]

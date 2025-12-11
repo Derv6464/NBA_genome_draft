@@ -1,20 +1,21 @@
 from datetime import datetime
+from schedule import Schedule
 
 class Team:
-    def __init__(self, players: list, schedule, generate_team_for_week):
+    def __init__(self, players: list, schedule: Schedule, generate_team_for_week):
         self.players = players
         self.schedule = schedule
         self.valid_team = self.check_team_validity()
-        self.salary = self.get_team_salary()
+        self.salary = self._get_team_salary()
         self.generate_team_for_week = generate_team_for_week
-        self.fitness = self.calculate_fitness()
+        self.fitness = self._calculate_fitness()
 
     def re_evaluate(self):
         self.valid_team = self.check_team_validity()
         self.salary = self.get_team_salary()
         self.fitness = self.calculate_fitness()
 
-    def get_weeks_scores(self, start = 1, end=6):
+    def get_weeks_scores(self, start = 1, end=6) -> list[int]:
         ''' Returns a list of all points scored from all players in the team for each week in the range '''
         scores = [0 for _ in range(26)]
         for week in range(start, end + 1):
@@ -22,25 +23,25 @@ class Team:
         
         return scores
     
-    def get_week_score(self, week):
+    def _get_week_score(self, week) -> int:
         ''' Returns the total points scored by all players in the team for a given week '''
         return sum(player["weekly_stats"][str(week)]["total_point"] for player in self.players if player.get("weekly_stats"))
     
-    def get_team_salary(self):
+    def _get_team_salary(self) -> float:
         ''' Returns the total salary of all players in the team '''
         return sum([float(p.get("salary")) for p in self.players])
         
-    def get_weekly_stats(self, player):
+    def _get_weekly_stats(self, player: dict) -> dict:
         ''' Returns the weekly stats of a player '''
-        return player.get("weekly_stats")
+        return player.get("weekly_stats")   
     
-    def get_players_match_count(self, player, week):
+    def _get_players_match_count(self, player: dict, week: int) -> int:
         player_team = player.get("team")
         self.schedule.get_team_days(player_team, week)
     
         return len(self.schedule.get_team_days(player_team, week))
     
-    def get_players_playing_on_day(self, week, day):
+    def _get_players_playing_on_day(self, week: int, day: int) -> list[dict]:
         '''Return all players who play on a specific day.'''
         playing = []
         for p in self.players:
@@ -50,7 +51,7 @@ class Team:
                 playing.append(p)
         return playing
 
-    def get_max_active_players(self, week, day):
+    def _get_max_active_players(self, week: int, day: int) -> list[dict]:
         '''Return the maximum valid lineup for that specific day.'''
     
         players_today = self.get_players_playing_on_day(week, day)
@@ -65,12 +66,11 @@ class Team:
         remaining = [p for p in players_today if id(p) not in used_ids]
 
         flex = remaining[:1] if remaining else []
-
         lineup = selected_fc + selected_bc + flex
 
         return lineup
     
-    def get_max_score(self, week, day):
+    def get_max_score(self, week:int, day:int) -> int:
         '''Return the maximum score for that specific day.'''
         players_today = self.get_players_playing_on_day(week, day)
 
@@ -96,12 +96,11 @@ class Team:
 
         return total
 
-    def get_game_score(self, game_stats):
+    def get_game_score(self, game_stats: list) -> int:
         ''' ["Minutes","Field Goals Made-Attempted","Field Goal Percentage","3-Point Field Goals Made-Attempted",
             "3-Point Field Goal Percentage","Free Throws Made-Attempted","Free Throw Percentage","Rebounds","Assists",
             "Blocks","Steals","Fouls","Turnovers","Points"
         '''
-
         total_points = int(game_stats[13])
         total_rebounds = int(game_stats[7])
         total_assists = int(game_stats[8])
@@ -111,28 +110,28 @@ class Team:
         fantasy_points = (total_points + total_rebounds + (total_assists*2) + (total_steals*3) + (total_blocks*3))
         return fantasy_points
 
-    def copy(self):
+    def copy(self) -> 'Team':
         return Team(self.players.copy(), self.schedule, self.generate_team_for_week)
     
-    def check_player_per_team(self):
+    def check_player_per_team(self) -> bool:
         for player in self.players:
             team_count = sum(1 for p in self.players if p.get("team") == player.get("team"))
             if team_count > 2:
                 return False
         return True
 
-    def check_player_salary(self, salary = 100):
+    def check_player_salary(self, salary = 100) -> bool:
         return self.get_team_salary() <= salary
     
-    def check_player_position(self):
+    def check_player_position(self) -> bool:
         front_court_count = sum(1 for p in self.players if p.get("position") == "fc")
         back_court_count = sum(1 for p in self.players if p.get("position") == "bc")
         return front_court_count == 5 and back_court_count == 5
     
-    def check_team_validity(self):
+    def check_team_validity(self) -> bool:
         return self.check_player_salary() and self.check_player_per_team() and self.check_player_position()
     
-    def calculate_fitness(self, salary_cap = 100):
+    def _calculate_fitness(self, salary_cap = 100) -> float:
         salary_penalty = self._get_salary_penalty(salary_cap)
         games_penalty = self._get_range_games_penalty(self.generate_team_for_week-1, self.generate_team_for_week) #only want week 6 team, so limit games penalty to weeks 1-6
 
@@ -155,7 +154,7 @@ class Team:
 
         return fitness_score
 
-    def _weight_weeks(self, player_scores, total_weeks):
+    def _weight_weeks(self, player_scores: list, total_weeks: int) -> list[float]:
         scores = []
         for player in player_scores:
             score = 0.0
@@ -174,7 +173,7 @@ class Team:
             scores.append(score)
         return scores
 
-    def _get_total_game_weeks(self, player_scores):
+    def _get_total_game_weeks(self, player_scores: list) -> int:
         max_weeks = 0
         for player_data in player_scores:  
             if not player_data:
@@ -184,7 +183,7 @@ class Team:
                 max_weeks = last_key
         return max_weeks
 
-    def _get_player_score(self, player):
+    def _get_player_score(self, player: dict) -> dict | None:
         stats = self.get_weekly_stats(player)
         filtered_weeks = {}
         for week, data in stats.items():
@@ -193,7 +192,7 @@ class Team:
         
         return filtered_weeks if filtered_weeks else None
     
-    def _get_weekly_games_penalty(self, week):
+    def _get_weekly_games_penalty(self, week: int) -> int:
         '''Calculate penalty based on number of games played in a week.'''
         total_penalty = 0
         for day in range(1, 8):
@@ -202,18 +201,18 @@ class Team:
 
         return total_penalty
     
-    def _get_range_games_penalty(self, start_week, end_week):
+    def _get_range_games_penalty(self, start_week: int, end_week: int) -> int:
         '''Calculate total games penalty across a range of weeks.'''
         total_penalty = 0
         for week in range(start_week, end_week + 1):
             total_penalty += self._get_weekly_games_penalty(week)
         return total_penalty
     
-    def _get_total_games_penalty(self):
+    def _get_total_games_penalty(self) -> int:
         '''Calculate total games penalty across all weeks.'''
         return self.get_range_games_penalty(1, 26)
     
-    def _get_duplicate_players_penalty(self):
+    def _get_duplicate_players_penalty(self) -> int:
         '''Calculate penalty for duplicate players in the team.'''
         duplication_penalty = 0
         for player in self.players:
@@ -222,7 +221,7 @@ class Team:
                 duplication_penalty += 100
         return duplication_penalty
     
-    def _get_invalid_position_penalty(self):
+    def _get_invalid_position_penalty(self) -> int:
         '''Calculate penalty for invalid player positions in the team.'''
         position_penalty = 0
         fc_count = sum(1 for p in self.players if p.get("position") == "fc")
@@ -234,17 +233,22 @@ class Team:
 
         return position_penalty
     
-    def _get_salary_penalty(self, salary_cap):
+    def _get_salary_penalty(self, salary_cap) -> int:
         '''Calculate penalty based on team salary exceeding the cap.'''
-        if self.get_team_salary() > salary_cap:
-            return (self.get_team_salary() - salary_cap) * 150
+        if self._get_team_salary() > salary_cap:
+            return (self._get_team_salary() - salary_cap) * 150
         return 0
     
-    def _get_team_count_penalty(self):
+    def _get_team_count_penalty(self) -> int:
         '''Calculate penalty for exceeding player count per team.'''
-        if self.check_player_per_team() :
+        if self.check_player_per_team():
             return 0
         return 200
+    
+    def _get_no_data_players_penalty(self) -> int:
+        '''Returns a list of players with no data in the team.'''
+        no_data_players = [player for player in self.players if not player.get("weekly_stats")]
+        return len(no_data_players) * 100
     
     def save_team(self, file_path="data/team_output.json"):
         '''Saves the team data to a specified JSON file.'''
@@ -258,10 +262,4 @@ class Team:
         }
         with open(file_path, 'a', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
-            f.write('\n')
-
-    def _get_no_data_players_penalty(self):
-        '''Returns a list of players with no data in the team.'''
-        no_data_players = [player for player in self.players if not player.get("weekly_stats")]
-        return len(no_data_players) * 100
-           
+            f.write('\n') 
