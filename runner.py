@@ -57,7 +57,7 @@ class Runner:
             # Recompute selection wheel each generation to reflect updated fitnesses
             fitness_wheel = self.population.make_wheel(fitness_trees)
             # Always perform 5 breeding operations per generation
-            for _ in range(5):
+            for _ in range(50):
                 if self.genetic_ops.should_crossover():
                     parent1_sel = self.population.selector(fitness_wheel)
                     parent2_sel = self.population.selector(fitness_wheel)
