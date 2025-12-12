@@ -31,7 +31,7 @@ class Runner:
 
     def run_genetic_programming(self):
         episodes = self.episode_count
-        fitness_individuals = self.population.ramped_half_and_half(size=1000, grow_funcs=5, type="fitness")
+        fitness_individuals = self.population.ramped_half_and_half(size=self.population_size, grow_funcs=5, type="fitness")
         fitness_trees = [Tree(node, self.sch, fitness=None) for node in fitness_individuals]
 
         print("Evaluating fitness trees on historical data...\n")
@@ -56,6 +56,7 @@ class Runner:
         while fitness_counter < episodes:
             # Recompute selection wheel each generation to reflect updated fitnesses
             fitness_wheel = self.population.make_wheel(fitness_trees)
+            # Always perform 5 breeding operations per generation
             for _ in range(5):
                 if self.genetic_ops.should_crossover():
                     parent1_sel = self.population.selector(fitness_wheel)
@@ -87,6 +88,7 @@ class Runner:
                         fitness_trees.remove(worst_tree)
                         fitness_trees.append(mutated_tree)
 
+
             # Track statistics for this generation
             best_fitness = min(t.fitness for t in fitness_trees)
             avg_fitness = sum(t.fitness for t in fitness_trees) / len(fitness_trees)
@@ -95,6 +97,9 @@ class Runner:
             best_fitness_per_gen.append(best_fitness)
             avg_fitness_per_gen.append(avg_fitness)
             worst_fitness_per_gen.append(worst_fitness)
+
+            if fitness_counter % 5 == 0:
+                print(f"Gen {fitness_counter}: Best={best_fitness:.4f}, Avg={avg_fitness:.4f}, Worst={worst_fitness:.4f}")
 
             fitness_counter += 1
 

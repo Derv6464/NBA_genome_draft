@@ -22,7 +22,8 @@ class Grapher:
         plt.title(title)
         plt.xticks(x + bar_width * (len(x_data) - 1) / 2, category)
         plt.legend()
-        file_path = os.path.join("data/images/", f"{title}-{datetime.now().strftime("%d_%m_%Y-%H:%M:%S")}.png")
+        timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+        file_path = os.path.join("data/images/", f"{title}-{timestamp}.png")
         plt.savefig(file_path, bbox_inches='tight')
 
     def graph_line(self, x_data: list[float], y_data : list[tuple[str, float]], x_label: str, y_label: str, title: str):
@@ -34,5 +35,6 @@ class Grapher:
         plt.ylabel(y_label)
         plt.title(title)
         plt.legend()
-        file_path = os.path.join("data/images/", f"{title}-{datetime.now().strftime("%d_%m_%Y-%H:%M:%S")}.png")
+        timestamp = str(datetime.now()).replace(' ', '_').replace(':', '-')
+        file_path = os.path.join("data/images/", f"{title}-{timestamp}.png")
         plt.savefig(file_path, bbox_inches='tight')
