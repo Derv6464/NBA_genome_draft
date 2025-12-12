@@ -117,7 +117,7 @@ class Population:
         
         return node
         
-    def make_wheel(self, individuals: list) -> list:
+    def make_wheel_for_gp(self, individuals: list) -> list:
         # Invert errors so lower fitness (error) gets higher selection probability
         eps = 1e-9
         raw = []
@@ -133,6 +133,14 @@ class Population:
 
         wheel = [(person, weight / total) for person, weight in raw]
         return wheel
+    
+    def make_wheel_for_ga(self, individuals: list) -> list:
+        pop_scores = [(team, team.fitness) for team in individuals]
+        total = sum(pop_scores[i][1] for i in range(len(pop_scores)))
+        wheel = [(person, fitness/total) for person, fitness in pop_scores]
+	
+        return wheel
+
 
     def selector(self, wheel: list) -> any:
         pop = [team for team, _ in wheel]
