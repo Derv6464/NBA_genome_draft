@@ -21,7 +21,7 @@ class Tree:
         return inorder_traversal(self.root)
     
     def get_gp_ranking_data(self):
-        with open("data/gp_data.json", "r") as f:
+        with open("data/gp_data.json", "r", encoding="utf-8-sig") as f:
             data = json.load(f)
         return data
     
@@ -200,21 +200,38 @@ class Tree:
             n = len(actual_places)
             concordant = 0
             discordant = 0
+            weighted_concordant = 0
+            weighted_discordant = 0
             
             for i in range(n):
                 for j in range(i + 1, n):
                     actual_diff = actual_places[i] - actual_places[j]
                     predicted_diff = predicted_places[i] - predicted_places[j]
                     
+                    # Weight based on how important these positions are (higher weight for top ranks)
+                    # Use inverse of actual ranks: top teams (rank 1, 2, 3) get highest weight
+                    weight_i = 1.0 / (actual_places[i] ** 0.5)
+                    weight_j = 1.0 / (actual_places[j] ** 0.5)
+                    pair_weight = (weight_i + weight_j) / 2
+                    
                     if (actual_diff > 0 and predicted_diff > 0) or (actual_diff < 0 and predicted_diff < 0):
                         concordant += 1
+                        weighted_concordant += pair_weight
                     elif (actual_diff > 0 and predicted_diff < 0) or (actual_diff < 0 and predicted_diff > 0):
                         discordant += 1
+                        weighted_discordant += pair_weight
             
             total_pairs = n * (n - 1) / 2
             tau = (concordant - discordant) / total_pairs if total_pairs > 0 else 0
             
-            error = 1.0 - tau
+            # Weighted tau for emphasizing top ranks
+            total_weight = weighted_concordant + weighted_discordant
+            weighted_tau = (weighted_concordant - weighted_discordant) / total_weight if total_weight > 0 else 0
+            
+            # Blend standard and weighted tau (70% weighted, 30% standard)
+            combined_tau = 0.7 * weighted_tau + 0.3 * tau
+            
+            error = 1.0 - combined_tau
             
             diversity_ratio = unique_values / len(predicted_fitness_values)
             if diversity_ratio < 0.5:
@@ -233,7 +250,7 @@ class Tree:
         size_penalty = 0.001 * node_count
 
         if node_count <= 1:
-            size_penalty += 5.0
+            size_penalty += 1.0
 
         self.fitness = avg_error + size_penalty
         return self.fitness
