@@ -53,11 +53,20 @@ class Runner:
         worst_fitness_per_gen = []
 
         fitness_counter = 0
+        elite_count = max(1, self.population_size // 100)  # Top 1% preserved as elite
+        
         while fitness_counter < episodes:
+            # Sort population by fitness (lower is better)
+            fitness_trees.sort(key=lambda t: t.fitness)
+            
+            # Preserve elite trees
+            elites = [tree.copy() for tree in fitness_trees[:elite_count]]
+            
             # Recompute selection wheel each generation to reflect updated fitnesses
             fitness_wheel = self.population.make_wheel_for_gp(fitness_trees)
-            # Always perform 5 breeding operations per generation
-            for _ in range(50):
+            
+            # Perform breeding operations
+            for _ in range(500):
                 if self.genetic_ops.should_crossover():
                     parent1_sel = self.population.selector(fitness_wheel)
                     parent2_sel = self.population.selector(fitness_wheel)
@@ -87,6 +96,10 @@ class Runner:
                     if mutated_tree.fitness < worst_tree.fitness:
                         fitness_trees.remove(worst_tree)
                         fitness_trees.append(mutated_tree)
+            
+            # Restore elites (ensure best trees always survive)
+            fitness_trees.sort(key=lambda t: t.fitness)
+            fitness_trees[:elite_count] = elites
 
 
             # Track statistics for this generation

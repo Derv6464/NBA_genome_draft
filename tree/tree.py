@@ -109,25 +109,39 @@ class Tree:
             if weekly_scores else
             0
         )
+        
+        # Calculate 3-week rolling average (recent form)
+        recent_form = 0
+        if weekly_scores:
+            sorted_weeks = sorted([int(k) for k in weekly_scores.keys()])
+            recent_weeks = sorted_weeks[-3:] if len(sorted_weeks) >= 3 else sorted_weeks
+            if recent_weeks:
+                recent_form = sum(weekly_scores[str(w)] for w in recent_weeks) / len(recent_weeks)
 
+        # Improved normalization with consistent scaling
+        # Using realistic ranges based on NBA fantasy data
         norm = {
-            "salary": salary / 100.0,
-            "points": total_points / 1000.0,
-            "rebounds": total_rebounds / 100.0,
-            "assists": total_assists / 100.0,
-            "blocks": total_blocks / 100.0,
-            "steals": total_steals / 100.0,
-            "fc_count": fc_count / 5.0,
-            "bc_count": bc_count / 5.0,
-            "weighted_score": weighted_score / 5000.0,
-            "salary_penalty": salary_penalty / 10000.0,
-            "position_penalty": position_penalty / 1000.0,
-            "team_count_penalty": team_count_penalty / 1000.0,
-            "avg_weekly_score": avg_weekly_score / 1000.0,
+            "salary": salary / 100.0,                        # 0-1 (salary cap is 100)
+            "points": total_points / 10000.0,                # 0-1 (~5000-10000 total points typical)
+            "rebounds": total_rebounds / 500.0,              # 0-1 (~200-500 typical)
+            "assists": total_assists / 500.0,                # 0-1 (~200-500 typical)
+            "blocks": total_blocks / 100.0,                  # 0-1 (~50-100 typical)
+            "steals": total_steals / 100.0,                  # 0-1 (~50-100 typical)
+            "fc_count": fc_count / 5.0,                      # 0-1 (5 forward-center positions)
+            "bc_count": bc_count / 5.0,                      # 0-1 (5 back-court positions)
+            "weighted_score": weighted_score / 5000.0,       # 0-1 (weighted historical score)
+            "avg_weekly_score": avg_weekly_score / 1000.0,   # 0-1 (~400-800 typical)
+            "recent_form": recent_form / 1000.0,             # 0-1 (last 3 weeks performance)
+            "salary_penalty": salary_penalty / 50000.0,      # Penalty for exceeding cap
+            "position_penalty": position_penalty / 1000.0,   # Penalty for wrong positions
+            "team_count_penalty": team_count_penalty / 200.0, # Penalty for >2 from same team
             "total_weeks": (1.0 if target_week is not None else max_week) / 26.0,
-            "games_count": games_count / 40.0,
+            "games_count": games_count / 100.0,              # 0-1 (~50-100 games typical)
         }
-        norm["points_per_salary"] = (norm["avg_weekly_score"]) / (norm["salary"])
+        
+        # Efficiency metrics
+        norm["points_per_salary"] = (total_points / (salary + 1e-9)) / 100.0  # Normalize efficiency
+        norm["points_per_game"] = (total_points / (games_count + 1e-9)) / 50.0  # ~20-40 typical
 
         return norm
 

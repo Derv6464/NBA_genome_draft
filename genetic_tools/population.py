@@ -20,9 +20,14 @@ VARIABLES = [
     "bc_count",
     "weighted_score",
     "avg_weekly_score",
+    "recent_form",              # 3-week rolling average
+    "salary_penalty",
+    "position_penalty",
+    "team_count_penalty",
     "total_weeks",
     "games_count",
     "points_per_salary",
+    "points_per_game",          # Points per game efficiency
 ]
 
 class Population:
