@@ -7,7 +7,7 @@ class Tree:
         self.sch = sch
 
     def copy(self):
-        return Tree(deepcopy(self.root), self.sch, self.fitness)
+        return Tree(deepcopy(self.root), self.sch, fitness=None)
 
     def to_string(self):
         def inorder_traversal(node):
@@ -110,7 +110,6 @@ class Tree:
             0
         )
 
-        eps = 1e-6
         norm = {
             "salary": salary / 100.0,
             "points": total_points / 1000.0,
@@ -128,20 +127,15 @@ class Tree:
             "total_weeks": (1.0 if target_week is not None else max_week) / 26.0,
             "games_count": games_count / 40.0,
         }
-        norm["points_per_salary"] = (norm["avg_weekly_score"]) / (norm["salary"] + eps)
+        norm["points_per_salary"] = (norm["avg_weekly_score"]) / (norm["salary"])
 
         return norm
 
 
-    def calculate_fitness(self, data_points, schedule=None):
-
-
+    def calculate_fitness(self, data_points):
         weeks_data = self.get_gp_ranking_data()
-        try:
-            with open("data/messed_up_name.json", "r", encoding="utf-8") as f:
-                messed = json.load(f).get("players", {})
-        except Exception:
-            messed = {}
+        with open("data/messed_up_name.json", "r", encoding="utf-8") as f:
+            messed = json.load(f).get("players", {})
         
         all_ranking_errors = []
 
@@ -183,13 +177,6 @@ class Tree:
                 
                 predicted_fitness = self.root.evaluate(features)
 
-                fc_count_dbg = sum(1 for p in players if p.get("position") == "fc")
-                bc_count_dbg = sum(1 for p in players if p.get("position") == "bc")
-                if fc_count_dbg != 5 or bc_count_dbg != 5:
-                    pos_list = [p.get("position") for p in players]
-                    print(f"[PosDebug] {week_name} | fc={fc_count_dbg} bc={bc_count_dbg} | positions={pos_list} | team={', '.join(player_names)}...")
-
-                
                 teams_with_scores.append({
                     'actual_place': actual_place,
                     'predicted_fitness': predicted_fitness
