@@ -43,7 +43,7 @@ class Runner:
             # print(f"Tree {i+1}: MSE = {tree.fitness:.2f}, Structure = {tree.to_string()}")
 
         print("\n=== Creating fitness wheel ===")
-        fitness_wheel = self.population.make_wheel(fitness_trees)
+        fitness_wheel = self.population.make_wheel_for_gp(fitness_trees)
         print(f"Best initial ranking error: {min(t.fitness for t in fitness_trees):.4f}")
         print(f"Worst initial ranking error: {max(t.fitness for t in fitness_trees):.4f}\n")
 
@@ -55,7 +55,7 @@ class Runner:
         fitness_counter = 0
         while fitness_counter < episodes:
             # Recompute selection wheel each generation to reflect updated fitnesses
-            fitness_wheel = self.population.make_wheel(fitness_trees)
+            fitness_wheel = self.population.make_wheel_for_gp(fitness_trees)
             # Always perform 5 breeding operations per generation
             for _ in range(50):
                 if self.genetic_ops.should_crossover():
@@ -190,7 +190,7 @@ class Runner:
             print(f"Worst fitness: {individuals[-1].fitness}")
 
             next_generation = [team.copy() for team in individuals[:self.elitism_count]]
-            wheel = self.population.make_wheel(individuals)
+            wheel = self.population.make_wheel_for_ga(individuals)
 
             while len(next_generation) < len(individuals):
                 parent1 = self.population.selector(wheel)

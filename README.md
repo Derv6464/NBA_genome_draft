@@ -5,6 +5,7 @@ This is a project that uses genetic algorithms and genetic programming to draft 
 ## Setup
 
 Clone the repo:
+
 ```bash
 git clone https://github.com/Derv6464/NBA_genome_draft.git
 cd NBA_genome_draft

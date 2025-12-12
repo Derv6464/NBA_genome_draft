@@ -17,7 +17,8 @@ class Team:
     def re_evaluate(self):
         self.valid_team = self.check_team_validity()
         self.salary = self._get_team_salary()
-        self.fitness = self.fitness
+        self.fitness = self.fitness_func(self) if self.fitness_func else self._calculate_fitness()
+
 
     def get_week_score(self, week) -> int:
         ''' Returns the total points scored by all players in the team for a given week '''
