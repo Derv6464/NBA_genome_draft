@@ -33,6 +33,10 @@ def main(week, episodes, population_size, max_salary, setup, ga, gp):
         best_fitness, _ = runner.run_genetic_programming()
         runner.run_programing_results(best_fitness)
     else:
+        if setup:
+            print("Setup complete. Please run the program again with --ga and/or --gp to execute the algorithms.")
+            return
+        
         raise ValueError("Either GA and/or GP must be true")
 
 
