@@ -15,6 +15,7 @@ class Team:
             self.fitness = self._calculate_fitness()
 
     def re_evaluate(self):
+        """Recalculate team validity, salary, and fitness after genetic operations."""
         self.valid_team = self.check_team_validity()
         self.salary = self._get_team_salary()
         self.fitness = self.fitness_func(self) if self.fitness_func else self._calculate_fitness()
@@ -33,6 +34,7 @@ class Team:
         return player.get("weekly_stats")   
     
     def _get_players_match_count(self, player: dict, week: int) -> int:
+        """Count how many days a player's team plays in a given week."""
         player_team = player.get("team")
         self.schedule.get_team_days(player_team, week)
     
@@ -94,10 +96,9 @@ class Team:
         return total
 
     def get_game_score(self, game_stats: list) -> int:
-        ''' ["Minutes","Field Goals Made-Attempted","Field Goal Percentage","3-Point Field Goals Made-Attempted",
-            "3-Point Field Goal Percentage","Free Throws Made-Attempted","Free Throw Percentage","Rebounds","Assists",
-            "Blocks","Steals","Fouls","Turnovers","Points"
-        '''
+        """Calculate fantasy score from raw game stats using weighted formula.
+        ["Minutes","FGM-A","FG%","3PM-A","3P%","FTM-A","FT%","Reb","Ast","Blk","Stl","Fouls","TO","Pts"]
+        """
         total_points = int(game_stats[13])
         total_rebounds = int(game_stats[7])
         total_assists = int(game_stats[8])

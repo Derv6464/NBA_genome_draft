@@ -5,9 +5,11 @@ class TreeNode:
         self.right = None
         
     def is_leaf(self):
+        """Check if node is a terminal (leaf) with no children."""
         return self.left is None and self.right is None
 
     def evaluate(self, variables):
+        """Recursively evaluate tree: substitute variables at leaves, apply operators at internal nodes."""
         if self.is_leaf():
             if isinstance(self.value, str) and self.value in variables:
                 return variables.get(self.value)

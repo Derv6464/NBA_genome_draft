@@ -6,11 +6,13 @@ class Schedule:
         self.schedule_data = self._make_schedule(schedule_data)
 
     def _read_messed_up_names(self) -> dict:
+        """Load ESPN-to-NBA team name mapping from JSON."""
         with open(f"data/messed_up_name.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data["teams"]
 
     def _make_schedule(self, schedule_data: dict) -> list:
+        """Convert schedule_data into 26-week x 7-day grid of playing teams."""
         schedule = [[[] for _ in range(7)] for _ in range(26)] 
         for week, week_data in schedule_data.items():
             for day, games in week_data.items():

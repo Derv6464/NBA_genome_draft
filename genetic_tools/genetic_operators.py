@@ -10,6 +10,7 @@ class GeneticOperators:
         self.players = players
     
     def copy_tree(self, node: Optional[TreeNode]) -> Optional[TreeNode]:
+        """Deep copy a TreeNode recursively."""
         if node is None:
             return None
         new = TreeNode(node.value)
@@ -18,6 +19,7 @@ class GeneticOperators:
         return new
 
     def nodes_with_parents(self, root: TreeNode) -> List[Tuple[TreeNode, Optional[TreeNode], Optional[str]]]:
+        """Collect all nodes with parent references and child side ('left'/'right') for mutation/crossover."""
         out: List[Tuple[TreeNode, Optional[TreeNode], Optional[str]]] = []
         def walk(node: TreeNode, parent: Optional[TreeNode], which: Optional[str]):
             out.append((node, parent, which))
@@ -29,6 +31,7 @@ class GeneticOperators:
         return out
 
     def subtree_mutation(self, parent: Tree, max_depth) -> Tree:
+        """Replace random subtree with new ramped half-and-half tree; returns new Tree with fitness=None."""
         if parent.root is None:
             raise ValueError("Parent tree must have a non-None root")
         
@@ -70,6 +73,7 @@ class GeneticOperators:
         return 1 + max(self.tree_depth(node.left), self.tree_depth(node.right))
 
     def subtree_crossover(self, parent1: Tree, parent2: Tree, max_depth, max_attempts: int = 10) -> Tuple[Tree, Tree]:
+        """Swap random subtrees between parents; reject if depth exceeds max; fallback to parent copies."""
         if parent1.root is None or parent2.root is None:
             raise ValueError("Parents must have non-None roots")
 
@@ -96,12 +100,14 @@ class GeneticOperators:
         return Tree(self.copy_tree(parent1.root), parent1.sch, fitness=None), Tree(self.copy_tree(parent2.root), parent2.sch, fitness=None)
 
     def mutate(self, team : list[dict]) -> None:
+        """Replace random player in team with new random player from pool."""
         team_size = len(team)
         random_player_index = random.randint(0, team_size - 1)
         new_player = random.choice(self.players)
         team[random_player_index] = new_player
     
     def crossover(self, team1: Team, team2: Team) -> Tuple[Team, Team]:
+        """Single-point crossover: swap player lists at random point between two teams."""
         team_size = len(team1.players)
         crossover_point = random.randint(1, team_size - 1)
 

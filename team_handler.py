@@ -15,9 +15,11 @@ class TeamHandler:
         self.fitness_func = None
 
     def update_fitness_function(self, fitness_func):
+        """Set custom fitness function (e.g., evolved GP tree) for team evaluation."""
         self.fitness_func = fitness_func
 
     def make_team_from_ids(self, ids: list[str], skip_team_creation=False) -> Team | list[dict]:
+        """Build Team from player IDs; optionally return just player list."""
         team =[player for player in self.player_data if (player.get("id")) and (player.get("id") in ids)]
 
         if skip_team_creation:
@@ -30,6 +32,7 @@ class TeamHandler:
         return Team(team, self.game_data, self.generate_team_for_week, self.fitness_func)
 
     def make_random_valid_team(self) -> Team:
+        """Generate random teams until one satisfies all constraints (salary, position, team caps)."""
         team = self._make_random_team()
 
         while not team.check_team_validity():

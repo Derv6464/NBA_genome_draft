@@ -2,7 +2,7 @@ from data_generator import DataGenerator
 from runner import Runner
 import argparse
 
-def main(week, episodes, population_size, max_salary, setup, ga, gp):
+def main(week, episodes, population_size, max_salary, setup, ga, gp, max_depth):
     print(f"Starting EA Program with Salary Cap: {max_salary}, Episodes: {episodes}, Population Size: {population_size} for week {week}")
 
     data_generator = DataGenerator("data")
@@ -16,9 +16,9 @@ def main(week, episodes, population_size, max_salary, setup, ga, gp):
     players, teams, games = data_generator.get_existing_data()
     print(f"Loaded {len(players)} players, {len(teams)} teams, {len(games)} weeks of games\n")
 
-    comp_temas = ["Dervla", "Dominick", "Amy", "rank_1", "rank_2", "rank_3"]
+    comp_teams = ["Dervla", "Dominick", "Amy", "rank_1", "rank_2", "rank_3"]
     
-    runner = Runner(episodes, population_size, players, games, teams, max_salary, week, comp_temas)
+    runner = Runner(episodes, population_size, players, games, teams, max_salary, week, comp_teams, max_depth)
 
     if ga and gp:
         best_tree, score_team_with_evolved_function = runner.run_genetic_programming()
@@ -51,5 +51,6 @@ if __name__ == "__main__":
     parser.add_argument('--setup', action='store_true', help='Whether to setup data from API')
     parser.add_argument('--ga', action='store_true', help='Run Genetic Algorithm')
     parser.add_argument('--gp', action='store_true', help='Run Genetic Programming')
+    parser.add_argument('-md', '--max_depth', type=int, default=5, help='Maximum depth for GP trees')
     args = parser.parse_args()
-    main(args.week, args.episodes, args.population, args.salary, args.setup, args.ga, args.gp)
+    main(args.week, args.episodes, args.population, args.salary, args.setup, args.ga, args.gp, args.max_depth)

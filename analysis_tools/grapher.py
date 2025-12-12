@@ -8,6 +8,7 @@ class Grapher:
         pass
 
     def graph_hist_bar(self, x_data: list[float], y_data: dict, category: list[int], cat_label: str, y_label: str, title: str):
+        """Generate grouped bar chart comparing multiple teams across categories; save to data/images/."""
         bar_width = 0.8 / len(x_data)
         x = np.arange(len(category))
 
@@ -27,6 +28,7 @@ class Grapher:
         plt.savefig(file_path, bbox_inches='tight')
 
     def graph_line(self, x_data: list[float], y_data : list[tuple[str, float]], x_label: str, y_label: str, title: str):
+        """Generate line plot with multiple series; save timestamped image to data/images/."""
         plt.figure()
         for label, data  in y_data:
             plt.plot(x_data, data, label=label)

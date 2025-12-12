@@ -35,6 +35,7 @@ class Population:
         self.individuals = []
 
     def ramped_half_and_half(self, size:int, grow_funcs=None, full_func=None, type = None) -> list:
+        """Generate diverse initial population: half full trees, half grow trees, ramped across depths."""
         individuals = []      
 
         if type == "fitness":
@@ -73,6 +74,7 @@ class Population:
         return individuals
     
     def generate_full_tree(self, max_depth:int, current_depth=0) -> TreeNode:
+        """Generate tree with all branches reaching max_depth; operators until depth, then terminals."""
         if current_depth == max_depth:
             value = random.choice(VARIABLES)
             return TreeNode(value)
@@ -96,6 +98,7 @@ class Population:
         return node
 
     def generate_grow_tree(self, max_depth: int, current_depth=0) -> TreeNode:
+        """Generate irregular tree: 30% chance of early terminal, otherwise operator until max_depth."""
         if current_depth == max_depth:
             value = random.choice(VARIABLES)
             return TreeNode(value)
@@ -123,6 +126,7 @@ class Population:
         return node
         
     def make_wheel_for_gp(self, individuals: list) -> list:
+        """Build roulette wheel with inverted fitness (1/fitness) for GP; lower error = higher probability."""
         # Invert errors so lower fitness (error) gets higher selection probability
         eps = 1e-9
         raw = []
@@ -140,6 +144,7 @@ class Population:
         return wheel
     
     def make_wheel_for_ga(self, individuals: list) -> list:
+        """Build roulette wheel with raw fitness for GA; higher fitness = higher probability."""
         pop_scores = [(team, team.fitness) for team in individuals]
         total = sum(pop_scores[i][1] for i in range(len(pop_scores)))
         wheel = [(person, fitness/total) for person, fitness in pop_scores]
@@ -148,6 +153,7 @@ class Population:
 
 
     def selector(self, wheel: list) -> any:
+        """Select individual via roulette wheel (cumulative probability sampling)."""
         pop = [team for team, _ in wheel]
         percents = [p for _, p in wheel]
 

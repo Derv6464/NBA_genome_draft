@@ -12,9 +12,10 @@ import random
 from datetime import datetime
 
 class Runner:
-    def __init__(self, episodes, population_size, player_data, games_data, teams_data, max_salary, generate_team_for_week, comp_teams):
+    def __init__(self, episodes, population_size, player_data, games_data, teams_data, max_salary, generate_team_for_week, comp_teams, max_depth):
         self.episode_count = episodes
         self.population_size = population_size
+        self.max_depth = max_depth
         self.players = player_data
         self.teams = teams_data
         self.max_salary = max_salary
@@ -30,24 +31,22 @@ class Runner:
 
 
     def run_genetic_programming(self):
+        """Evolve GP trees to learn ranking function via weighted Kendall's tau + elitism."""
         episodes = self.episode_count
         fitness_individuals = self.population.ramped_half_and_half(size=self.population_size, grow_funcs=5, type="fitness")
         fitness_trees = [Tree(node, self.sch, fitness=None) for node in fitness_individuals]
 
         print("Evaluating fitness trees on historical data...\n")
         for i, tree in enumerate(fitness_trees):
-            # print(f"Evaluating tree {i+1}/{len(fitness_trees)}...")
             tree.calculate_fitness(self.players)
             if (i+1) % 100 == 0:
                 print(f"  Completed {i+1}/{len(fitness_trees)} trees")
-            # print(f"Tree {i+1}: MSE = {tree.fitness:.2f}, Structure = {tree.to_string()}")
 
         print("\n=== Creating fitness wheel ===")
         fitness_wheel = self.population.make_wheel_for_gp(fitness_trees)
         print(f"Best initial ranking error: {min(t.fitness for t in fitness_trees):.4f}")
         print(f"Worst initial ranking error: {max(t.fitness for t in fitness_trees):.4f}\n")
 
-        # Track evolution progress
         best_fitness_per_gen = []
         avg_fitness_per_gen = []
         worst_fitness_per_gen = []
@@ -59,8 +58,8 @@ class Runner:
             # Sort population by fitness (lower is better)
             fitness_trees.sort(key=lambda t: t.fitness)
             
-            # Preserve elite trees
-            elites = [tree.copy() for tree in fitness_trees[:elite_count]]
+            # Preserve elite trees (keep originals, not copies, to retain fitness)
+            elites = fitness_trees[:elite_count]
             
             # Recompute selection wheel each generation to reflect updated fitnesses
             fitness_wheel = self.population.make_wheel_for_gp(fitness_trees)
@@ -143,6 +142,7 @@ class Runner:
 
 
     def run_programing_results(self, best_tree):
+        """Display per-week ranking predictions vs actual rankings for best evolved tree."""
 
         # Per-week ranking report for the best tree
         print("\n=== Per-Week Ranking Report (Best Tree) ===")
@@ -178,6 +178,7 @@ class Runner:
 
 
     def run_genetic_algorithm(self, fitness_func = None) -> Team:
+        """Evolve NBA fantasy teams via crossover + mutation with optional evolved fitness function."""
         episodes = self.episode_count
         if fitness_func:
             self.team_handler.update_fitness_function(fitness_func)
@@ -250,6 +251,7 @@ class Runner:
         return best_team
 
     def run_algorithim_results(self, best_team: Team):
+        """Compare best team against baseline teams (fitness, weekly/daily scores) and generate graphs."""
         self.comparitor.compare_fitness(best_team)
         self.comparitor.compare_weekly_scores(best_team)
         self.comparitor.compare_days_scores(best_team, [self.generate_team_for_week], [1,2,3,4,5,6,7])

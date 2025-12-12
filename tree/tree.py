@@ -7,9 +7,11 @@ class Tree:
         self.sch = sch
 
     def copy(self):
+        """Create deep copy of tree with fitness reset to None."""
         return Tree(deepcopy(self.root), self.sch, fitness=None)
 
     def to_string(self):
+        """Convert tree to infix string representation, e.g., '((points + salary) / fc_count)'."""
         def inorder_traversal(node):
             if node is None:
                 return ""
@@ -21,11 +23,13 @@ class Tree:
         return inorder_traversal(self.root)
     
     def get_gp_ranking_data(self):
+        """Load historical weekly team rankings from gp_data.json."""
         with open("data/gp_data.json", "r", encoding="utf-8-sig") as f:
             data = json.load(f)
         return data
     
     def get_team_features(self, players, target_week=None):
+        """Extract and normalize team features (stats, penalties, efficiency metrics) for GP evaluation."""
         salary = sum(float(p.get("salary", 0)) for p in players)
         total_points = sum(float(p.get("total_points", 0)) for p in players)
         fc_count = sum(1 for p in players if p.get("position") == "fc")
@@ -118,8 +122,7 @@ class Tree:
             if recent_weeks:
                 recent_form = sum(weekly_scores[str(w)] for w in recent_weeks) / len(recent_weeks)
 
-        # Improved normalization with consistent scaling
-        # Using realistic ranges based on NBA fantasy data
+
         norm = {
             "salary": salary / 100.0,                        # 0-1 (salary cap is 100)
             "points": total_points / 10000.0,                # 0-1 (~5000-10000 total points typical)
@@ -139,7 +142,6 @@ class Tree:
             "games_count": games_count / 100.0,              # 0-1 (~50-100 games typical)
         }
         
-        # Efficiency metrics
         norm["points_per_salary"] = (total_points / (salary + 1e-9)) / 100.0  # Normalize efficiency
         norm["points_per_game"] = (total_points / (games_count + 1e-9)) / 50.0  # ~20-40 typical
 
@@ -147,6 +149,7 @@ class Tree:
 
 
     def calculate_fitness(self, data_points):
+        """Calculate fitness as avg ranking error across weeks using weighted Kendall's tau + parsimony penalty."""
         weeks_data = self.get_gp_ranking_data()
         with open("data/messed_up_name.json", "r", encoding="utf-8") as f:
             messed = json.load(f).get("players", {})
@@ -223,7 +226,6 @@ class Tree:
                     predicted_diff = predicted_places[i] - predicted_places[j]
                     
                     # Weight based on how important these positions are (higher weight for top ranks)
-                    # Use inverse of actual ranks: top teams (rank 1, 2, 3) get highest weight
                     weight_i = 1.0 / (actual_places[i] ** 0.5)
                     weight_j = 1.0 / (actual_places[j] ** 0.5)
                     pair_weight = (weight_i + weight_j) / 2
@@ -242,7 +244,7 @@ class Tree:
             total_weight = weighted_concordant + weighted_discordant
             weighted_tau = (weighted_concordant - weighted_discordant) / total_weight if total_weight > 0 else 0
             
-            # Blend standard and weighted tau (70% weighted, 30% standard)
+
             combined_tau = 0.7 * weighted_tau + 0.3 * tau
             
             error = 1.0 - combined_tau

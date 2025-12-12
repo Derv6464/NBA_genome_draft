@@ -20,6 +20,7 @@ class Comparitor:
             return data
         
     def make_comparison_teams(self, team_name) -> list[Team]:
+        """Load historical team lineups from comparison_teams.json for given team_name."""
         teams_data = self.read_comparion_file().get(team_name)
         teams = []
         for week_num in range(self.start_week, self.end_week + 1):
@@ -28,6 +29,7 @@ class Comparitor:
         return teams
 
     def get_fitness_scores(self, week:int) -> dict:
+        """Get fitness scores for all comparison teams for given week."""
         fitness = dict()
         for team_name, teams in self.comparison_teams.items():
             team = teams[week - 3]
@@ -51,6 +53,7 @@ class Comparitor:
             print(" | ".join(padded))
     
     def compare_fitness(self, best_team: Team) -> dict:
+        """Compare evolved team fitness vs baselines across weeks; print comparison table."""
         weeks = list(range(self.start_week, self.end_week + 1))
 
         table = {"Best Team": []}
@@ -79,6 +82,7 @@ class Comparitor:
         self._print_table(table, weeks, "week")
 
     def compare_weekly_scores(self, best_team: Team) -> dict:
+        """Compare actual weekly fantasy scores vs baselines; print comparison table."""
         weeks = list(range(self.start_week, self.end_week + 1))
 
         table = {"Best Team": []}
