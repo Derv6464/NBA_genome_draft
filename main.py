@@ -84,7 +84,7 @@ def main(week, episodes, population_size, max_salary):
         fitness_wheel = population.make_wheel(fitness_trees)
         
         # Always perform 5 breeding operations per generation
-        for _ in range(5):
+        for _ in range(50):
             if genetic_ops.should_crossover():
                 parent1_sel = population.selector(fitness_wheel)
                 parent2_sel = population.selector(fitness_wheel)
