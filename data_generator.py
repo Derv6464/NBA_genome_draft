@@ -8,8 +8,7 @@ import time
 import json
 import requests
 import os
-from datetime import datetime, timedelta, timezone
-import dateutil
+from datetime import datetime
 import zoneinfo
 
 PT = zoneinfo.ZoneInfo("America/Los_Angeles")
@@ -17,64 +16,66 @@ PT = zoneinfo.ZoneInfo("America/Los_Angeles")
 class DataGenerator:
     def __init__(self, folder_path):
         self.folder_path = folder_path
-        self.ensure_data_folder()
+        self._ensure_data_folder()
         self.nba_fantasy_url = "https://nbafantasy.nba.com/statistics"
         self.espn_v2_url = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams"
         self.espn_v3_url = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/"
-        self.messed_up_names,self.espn_to_nba  = self.read_messed_up_names()
+        self.messed_up_names,self.espn_to_nba  = self._read_messed_up_names()
         self.players = []
         self.teams = []
         self.game_data = []
 
-    def get_all_info(self):
+    def get_all_info(self, week):
         print("Fetching player data...")
-        self.get_player_data()
+        self._get_player_data()
         print("Fetching game data...")
-        self.get_game_data()
+        self._get_game_data()
         print("Updating player stats...")
-        self.get_player_stats()
+        self._get_player_stats()
+        self._gp_teams_to_comparison(up_to_week=week)
 
     def update_player_stats(self):
         print("Reading existing data...")
-        self.teams = self.read_team_data()
-        self.players = self.read_player_data()
-        self.game_data = self.read_game_data()
+        self.teams = self._read_team_data()
+        self.players = self._read_player_data()
+        self.game_data = self._read_game_data()
         print("Updating player stats...")
-        self.get_player_stats()
+        self._get_player_stats()
 
-    def get_existing_data(self):
+    def get_existing_data(self) -> tuple[list, list, dict]:
         ''' Reads existing data from JSON files '''
-        self.teams = self.read_team_data()
-        self.players = self.read_player_data()
-        self.game_data = self.read_game_data()
+        self.teams = self._read_team_data()
+        self.players = self._read_player_data()
+        self.game_data = self._read_game_data()
 
         return self.players, self.teams, self.game_data
 
-    def ensure_data_folder(self):
+    def _ensure_data_folder(self):
         if not os.path.exists(self.folder_path):
             os.makedirs(self.folder_path)
 
-    def read_player_data(self):
+    def _read_player_data(self) -> list:
         with open(f"{self.folder_path}/nba_players.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
 
-    def read_game_data(self):
+    def _read_game_data(self) -> dict:
         with open(f"{self.folder_path}/nba_game.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
         
-    def read_team_data(self):
+    def _read_team_data(self) -> list:
         with open(f"{self.folder_path}/nba_team.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
         
-    def read_messed_up_names(self):
+    def _read_messed_up_names(self) -> tuple[dict, dict]:
         with open(f"{self.folder_path}/messed_up_name.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data["players"], data["teams"]
 
-    def get_player_data(self):
+    def _get_player_data(self):
+        ''' Fetches player data from NBA Fantasy website using Selenium '''
         options = Options()
 
         driver = webdriver.Chrome(options=options)
@@ -178,7 +179,8 @@ class DataGenerator:
         with open(f"{self.folder_path}/nba_players.json", "w", encoding="utf-8") as f:
             json.dump(self.players, f, ensure_ascii=False, indent=4)
 
-    def get_week_from_date(self, date_str):
+    def _get_week_from_date(self, date_str: str) -> tuple[int, int]:
+        ''' Converts ISO date string to week and day number '''
         game_dt_utc = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         game_dt_pt = game_dt_utc.astimezone(PT)
         week1_start_pt = datetime(2025, 10, 20, tzinfo=PT)
@@ -195,7 +197,8 @@ class DataGenerator:
 
         return week_number, day_number
     
-    def get_game_data(self):
+    def _get_game_data(self):
+        ''' Fetches game schedule data from ESPN API '''
         response = requests.get(self.espn_v2_url)
         data = response.json()
         teams_list = data["sports"][0]["leagues"][0]["teams"]
@@ -210,7 +213,7 @@ class DataGenerator:
             
             for game in games:
                 game_date_str = game["date"]
-                week_number, day_number = self.get_week_from_date(game_date_str)
+                week_number, day_number = self._get_week_from_date(game_date_str)
 
                 if game['shortName'] not in game_dates[week_number][day_number]:
                     game_dates[week_number][day_number].append(game['shortName'])
@@ -227,12 +230,12 @@ class DataGenerator:
         with open(f"{self.folder_path}/nba_game.json", "w", encoding="utf-8") as f:
             json.dump(game_dates, f, ensure_ascii=False, indent=4)
 
-    def search_player(self, name):
+    def _search_player(self, name: str) -> int | None:
         for i, player in enumerate(self.players):
             if player["name"] == name:
                 return i
             
-    def calc_weekly_point(self, weeks_stats):
+    def _calc_weekly_point(self, weeks_stats: list[list[str]]) -> int:
         ''' ["Minutes","Field Goals Made-Attempted","Field Goal Percentage","3-Point Field Goals Made-Attempted",
             "3-Point Field Goal Percentage","Free Throws Made-Attempted","Free Throw Percentage","Rebounds","Assists",
             "Blocks","Steals","Fouls","Turnovers","Points"
@@ -253,7 +256,8 @@ class DataGenerator:
         fantasy_points = (total_points + total_rebounds + (total_assists*2) + (total_steals*3) + (total_blocks*3))
         return fantasy_points
             
-    def make_player_stats(self, data):
+    def _make_player_stats(self, data: dict) -> dict:
+        ''' Processes player stats from ESPN API data '''
         if not data.get("seasonTypes"):
             return {}
         
@@ -272,7 +276,7 @@ class DataGenerator:
                 if month.get("events"):
                     for events in month["events"]:
                         event_id = events["eventId"]
-                        week_number, day_number = self.get_week_from_date(event_dict[event_id])
+                        week_number, day_number = self._get_week_from_date(event_dict[event_id])
                         game_stats_per_week[week_number]["game_stats"][day_number].append(events["stats"])
             except Exception as e:
                 print(f"Error processing month data: {e}")
@@ -280,12 +284,13 @@ class DataGenerator:
                 continue
 
         for week in game_stats_per_week:
-            total_fantasy_points = self.calc_weekly_point(game_stats_per_week[week]["game_stats"])
+            total_fantasy_points = self._calc_weekly_point(game_stats_per_week[week]["game_stats"])
             game_stats_per_week[week]["total_point"] = total_fantasy_points
 
         return game_stats_per_week
 
-    def get_player_stats(self):
+    def _get_player_stats(self):
+        ''' Updates player stats by fetching from ESPN API '''
         player_not_found = []
 
         if self.teams and self.players:
@@ -296,11 +301,11 @@ class DataGenerator:
                 data = response.json()
 
                 for player in data["athletes"]:
-                    player_index = self.search_player(player["displayName"])
+                    player_index = self._search_player(player["displayName"])
                     if player_index is None:
                         messed_up_name = self.messed_up_names.get(player["displayName"])
                         if messed_up_name:
-                            player_index = self.search_player(messed_up_name)
+                            player_index = self._search_player(messed_up_name)
                         else:
                             player_not_found.append(player["displayName"])
                             continue
@@ -312,7 +317,7 @@ class DataGenerator:
                     stats_request = f"{self.espn_v3_url}{player['id']}/gamelog?season=2026"
                     stats_response = requests.get(stats_request)
                     stats_data = stats_response.json()
-                    game_stats_per_week = self.make_player_stats(stats_data)
+                    game_stats_per_week = self._make_player_stats(stats_data)
                     self.players[player_index]["weekly_stats"] = game_stats_per_week
 
             with open(f"{self.folder_path}/nba_players.json", "w", encoding="utf-8") as f:
@@ -324,7 +329,9 @@ class DataGenerator:
         else:
             print("Teams or players data is missing. Please fetch player and team data first.")
 
-    def gp_teams_to_comparison(self, up_to_week):
+    def _gp_teams_to_comparison(self, up_to_week: int):
+        ''' Converts GP teams to comparison teams JSON format '''
+
         with open(f"{self.folder_path}/gp_data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
         
@@ -339,16 +346,14 @@ class DataGenerator:
 
                 player_ids = []
                 for player in players:
-                    player_index = self.search_player(player)
+                    player_index = self._search_player(player)
                     if player_index is None:
                         messed_up_name = self.messed_up_names.get(player)
                         if messed_up_name:
-                            player_index = self.search_player(messed_up_name)
+                            player_index = self._search_player(messed_up_name)
                     player_ids.append(self.players[player_index]["id"])
                 
                 comparison_teams[team_name][str(week_num)] = player_ids
 
-       
-            
         with open(f"{self.folder_path}/comparison_teams.json", "a", encoding="utf-8") as f:
             json.dump(comparison_teams, f, ensure_ascii=False, indent=4)

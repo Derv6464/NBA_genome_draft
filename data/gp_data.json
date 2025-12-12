@@ -1,0 +1,702 @@
+{
+  "week_1": {
+    "rankings": [
+      {
+        "place": 1,
+        "players": [
+          "Luka Doncic",
+          "Will Richard",
+          "Chet Holmgren",
+          "Ousmane Dieng",
+          "Alperen Sengun",
+          "VJ Edgecombe",
+          "Miles McBride",
+          "Victor Wembanyama",
+          "Javon Small",
+          "Neemias Queta"
+        ]
+      },
+      {
+        "place": 2,
+        "players": [
+          "Shai Gilgeous-Alexander",
+          "Luka Doncic",
+          "Stephen Curry",
+          "Jimmy Butler",
+          "Isaiah Hartenstein",
+          "Johnny Furphy",
+          "Riley Minix",
+          "Jahmyl Telfort",
+          "Trentyn Flowers"
+        ]
+      },
+      {
+        "place": 3,
+        "players": [
+          "Luka Doncic",
+          "Shai Gilgeous-Alexander",
+          "Stephen Curry",
+          "Rui Hachimura",
+          "Alperen Sengun",
+          "Ousmane Dieng",
+          "Aaron Holiday",
+          "Gui Santos",
+          "Jordan Walsh",
+          "Pelle Larsson"
+        ]
+      },
+      {
+        "place": 4,
+        "players": [
+          "Luka Doncic",
+          "Shai Gilgeous-Alexander",
+          "Rui Hachimura",
+          "Chet Holmgren",
+          "Alperen Sengun",
+          "JD Davison",
+          "Gary Payton II",
+          "Quinten Post",
+          "Pat Connaughton",
+          "Luka Garza"
+        ]
+      },
+      {
+        "place": 5,
+        "players": [
+          "Luka Doncic",
+          "Stephen Curry",
+          "Shai Gilgeous-Alexander",
+          "Alperen Sengun",
+          "Jabari Smith Jr.",
+          "Nikola Djurisic",
+          "Pat Connaughton",
+          "Jordan Walsh",
+          "Gui Santos",
+          "Bobi Klintman"
+        ]
+      }
+    ]
+  },
+  "week_2": {
+    "rankings": [
+      {
+        "place": 1,
+        "players": [
+          "Stephen Curry",
+          "Shai Gilgeous-Alexander",
+          "Tyrese Maxey",
+          "Isaiah Hartenstein",
+          "Neemias Queta",
+          "Brice Sensabaugh",
+          "Matas Buzelis",
+          "Ben Sheppard",
+          "Javon Small",
+          "Kyshawn George"
+        ]
+      },
+      {
+        "place": 2,
+        "players": [
+          "Shai Gilgeous-Alexander",
+          "Tre Jones",
+          "Stephen Curry",
+          "Victor Wembanyama",
+          "Franz Wagner",
+          "Ajay Mitchell",
+          "Mouhamed Gueye",
+          "Javon Small",
+          "Kyshawn George"
+        ]
+      },
+      {
+        "place": 3,
+        "players": [
+          "Austin Reaves",
+          "Tyrese Maxey",
+          "Jonathan Kuminga",
+          "Brice Sensabaugh",
+          "Victor Wembanyama",
+          "Ajay Mitchell",
+          "Neemias Queta",
+          "Ryan Rollins",
+          "LaMelo Ball",
+          "Kyshawn George"
+        ]
+      },
+      {
+        "place": 4,
+        "players": [
+          "Jamal Murray",
+          "Tyrese Maxey",
+          "Shai Gilgeous-Alexander",
+          "Matas Buzelis",
+          "Chet Holmgren",
+          "Quentin Grimes",
+          "Terrence Shannon Jr.",
+          "Yang Hansen",
+          "Ryan Kalkbrenner",
+          "Kel'el Ware"
+        ]
+      },
+      {
+        "place": 5,
+        "players": [
+          "Tyrese Maxey",
+          "Shai Gilgeous-Alexander",
+          "VJ Edgecombe",
+          "Victor Wembanyama",
+          "Matas Buzelis",
+          "Kon Knueppel",
+          "Quinten Post",
+          "Neemias Queta",
+          "Gary Payton II",
+          "Jaylin Williams"
+        ]
+      }
+    ]
+  },
+  "week_3": {
+    "rankings": [
+      {
+        "place": 1,
+        "players": [
+          "Cedric Coward",
+          "Jamal Murray",
+          "Cade Cunningham",
+          "Giannis Antetokounmpo",
+          "Nikola Jokic",
+          "Jaylon Tyson",
+          "Ajay Mitchell",
+          "Josh Minott",
+          "Mouhamed Gueye",
+          "RayJ Dennis"
+        ]
+      },
+      {
+        "place": 2,
+        "players": [
+          "Cade Cunningham",
+          "James Harden",
+          "Nikola Jokic",
+          "Alperen Sengun",
+          "Giannis Antetokounmpo",
+          "Austin Reaves",
+          "Luka Doncic",
+          "Julius Randle",
+          "Jalen Brunson",
+          "Pascal Siakam"
+        ]
+      },
+      {
+        "place": 3,
+        "players": [
+          "Cade Cunningham",
+          "Ryan Rollins",
+          "Alperen Sengun",
+          "Giannis Antetokounmpo",
+          "Jarace Walker",
+          "Jock Landale",
+          "Neemias Queta",
+          "Tyrese Maxey",
+          "Collin Gillespie",
+          "Ajay Mitchell"
+        ]
+      },
+      {
+        "place": 4,
+        "players": [
+          "Ryan Rollins",
+          "Keyonte George",
+          "Giannis Antetokounmpo",
+          "Alperen Sengun",
+          "Nikola Jokic",
+          "Tre Jones",
+          "Gui Santos",
+          "AJ Johnson",
+          "Mouhamed Gueye",
+          "Jeremiah Fears"
+        ]
+      },
+      {
+        "place": 5,
+        "players": [
+          "Pelle Larsson",
+          "Keyonte George",
+          "Nikola Jokic",
+          "Pascal Siakam",
+          "Julius Randle",
+          "Ajay Mitchell",
+          "Jaylon Tyson",
+          "Luka Doncic",
+          "Josh Minott",
+          "Mouhamed Gueye"
+        ]
+      },{
+        "place": 6,
+        "players": [
+          "Jrue Holiday",
+          "Ryan Rollins",
+          "Jaime Jaquez Jr.",
+          "Kyshawn George",
+          "Alexandre Sarr",
+          "Shai Gilgeous-Alexander",
+          "Quentin Grimes",
+          "VJ Edgecombe",
+          "Draymond Green",
+          "Deni Avdija"
+        ]
+      },
+      {
+        "place": 7,
+        "players": [
+          "Jrue Holiday",
+          "Ryan Rollins",
+          "Jaime Jaquez Jr.",
+          "Kyshawn George",
+          "Jarace Walker",
+          "VJ Edgecombe",
+          "Luka Doncic",
+          "Quentin Grimes",
+          "Victor Wembanyama",
+          "Jonathan Kuminga"
+        ]
+      },
+      {
+        "place": 8,
+        "players": [
+          "Ben Sheppard",
+          "Cedric Coward",
+          "Jalen Wilson",
+          "Jaylen Wells",
+          "Scottie Barnes",
+          "LaMelo Ball",
+          "Luka Doncic",
+          "Lonzo Ball",
+          "Yang Hansen",
+          "Jimmy Butler"
+        ]
+      }
+    ]
+  },
+  "week_4": {
+        "rankings": [
+      {
+        "place": 1,
+        "players": [
+          "Jrue Holiday",
+          "Devin Booker",
+          "Donovan Mitchell",
+          "Victor Wembanyama",
+          "Deni Avdija",
+          "Russell Westbrook",
+          "Ajay Mitchell",
+          "Jock Landale",
+          "Jarace Walker",
+          "Josh Minott"
+        ]
+      },
+      {
+        "place": 2,
+        "players": [
+          "Devin Booker",
+          "Keyonte George",
+          "Jrue Holiday",
+          "Alexandre Sarr",
+          "Deni Avdija",
+          "Mouhamed Gueye",
+          "Cedric Coward",
+          "Josh Minott",
+          "Ajay Mitchell",
+          "Nikola Jokic"
+        ]
+      },
+      {
+        "place": 3,
+        "players": [
+          "Collin Gillespie",
+          "A.J. Green",
+          "Royce O'Neale",
+          "Giannis Antetokounmpo",
+          "Victor Wembanyama",
+          "Ryan Kalkbrenner",
+          "Neemias Queta",
+          "Shai Gilgeous-Alexander",
+          "Ajay Mitchell",
+          "Cedric Coward"
+        ]
+      },
+      {
+        "place": 4,
+        "players": [
+          "Donovan Mitchell",
+          "Luka Doncic",
+          "Grayson Allen",
+          "Giannis Antetokounmpo",
+          "Victor Wembanyama",
+          "Jaylon Tyson",
+          "Ajay Mitchell",
+          "Mouhamed Gueye",
+          "Gui Santos",
+          "Ousmane Dieng"
+        ]
+      },
+      {
+        "place": 5,
+        "players": [
+          "James Harden",
+          "Austin Reaves",
+          "Kyshawn George",
+          "Jaime Jaquez Jr.",
+          "Giannis Antetokounmpo",
+          "Tre Jones",
+          "Neemias Queta",
+          "Jimmy Butler",
+          "Ben Sheppard",
+          "Ajay Mitchell"
+        ]
+      },{
+        "place": 6,
+        "players": [
+          "Luka Doncic",
+          "Ryan Rollins",
+          "Jrue Holiday",
+          "Jaime Jaquez Jr.",
+          "Ryan Kalkbrenner",
+          "Nikola Jokic",
+          "Jarace Walker",
+          "Quentin Grimes",
+          "VJ Edgecombe",
+          "Kyshawn George"
+        ]
+      },
+      {
+        "place": 7,
+        "players": [
+          "Tre Jones",
+          "Jrue Holiday",
+          "Jaime Jaquez Jr.",
+          "Deni Avdija",
+          "Alexandre Sarr",
+          "Draymond Green",
+          "VJ Edgecombe",
+          "Shai Gilgeous-Alexander",
+          "Kyshawn George",
+          "Quentin Grimes"
+        ]
+      },
+      {
+        "place": 8,
+        "players": [
+          "Luka Doncic",
+          "Lonzo Ball",
+          "Cedric Coward",
+          "Jimmy Butler",
+          "Jaylen Wells",
+          "LaMelo Ball",
+          "Ben Sheppard",
+          "Scottie Barnes",
+          "Yang Hansen",
+          "Jalen Wilson"
+        ]
+      }
+    ]
+  },
+  "week_5": {
+    "rankings": [
+      {
+        "place": 1,
+        "players": [
+          "Josh Giddey",
+          "Donovan Mitchell",
+          "Tyrese Maxey",
+          "Mikal Bridges",
+          "Nikola Jokic",
+          "Daniss Jenkins",
+          "Ajay Mitchell",
+          "Nae'Qwan Tomlin",
+          "Moussa Cisse",
+          "Branden Carlson"
+        ]
+      },
+      {
+        "place": 2,
+        "players": [
+          "Tyrese Maxey",
+          "Shai Gilgeous-Alexander",
+          "Ryan Rollins",
+          "Nikola Jokic",
+          "Moussa Diabate",
+          "Russell Westbrook",
+          "Ajay Mitchell",
+          "Jock Landale",
+          "Mouhamed Gueye"
+        ]
+      },
+      {
+        "place": 3,
+        "players": [
+          "Tyrese Maxey",
+          "Ajay Mitchell",
+          "Ryan Rollins",
+          "Nikola Jokic",
+          "Jaime Jaquez Jr.",
+          "Collin Gillespie",
+          "Jalen Johnson",
+          "Jock Landale",
+          "Deni Avdija",
+          "Nickeil Alexander-Walker"
+        ]
+      },
+      {
+        "place": 4,
+        "players": [
+          "Tyrese Maxey",
+          "Shai Gilgeous-Alexander",
+          "Ajay Mitchell",
+          "Julius Randle",
+          "Nikola Jokic",
+          "Brandon Williams",
+          "Craig Porter",
+          "Ryan Kalkbrenner",
+          "Derik Queen"
+        ]
+      },
+      {
+        "place": 5,
+        "players": [
+          "Kon Knueppel",
+          "Ryan Rollins",
+          "Shai Gilgeous-Alexander",
+          "Nikola Jokic",
+          "Evan Mobley",
+          "Jarace Walker",
+          "Dalton Knecht",
+          "Tristan da Silva",
+          "Stephon Castle",
+          "Collin Gillespie"
+        ]
+      }, {
+        "place": 6,
+        "players": [
+          "Ryan Rollins",
+          "Tyrese Maxey",
+          "Jaime Jaquez Jr.",
+          "Ryan Kalkbrenner",
+          "Nikola Jokic",
+          "Kyshawn George",
+          "Nickeil Alexander-Walker",
+          "Jrue Holiday",
+          "Grayson Allen",
+          "Santi Aldama"
+        ]
+      },
+      {
+        "place": 7,
+        "players": [
+          "Ben Sheppard",
+          "LaMelo Ball",
+          "Lonzo Ball",
+          "Scottie Barnes",
+          "Jaime Jaquez Jr.",
+          "Cedric Coward",
+          "Josh Minott",
+          "Luka Doncic",
+          "Jalen Wilson",
+          "Jimmy Butler"
+        ]
+      },
+      {
+        "place": 8,
+        "players": [
+          "Shai Gilgeous-Alexander",
+          "Ajay Mitchell",
+          "Ryan Rollins",
+          "Lauri Markkanen",
+          "Jaime Jaquez Jr.",
+          "Russell Westbrook",
+          "Jrue Holiday",
+          "Alexandre Sarr",
+          "Kyshawn George",
+          "Deni Avdija"
+        ]
+      }
+    ]
+  },
+  "week_6": {
+    "rankings": [
+      {
+        "place": 1,
+        "players": [
+          "Ryan Rollins",
+          "Cade Cunningham",
+          "Devin Booker",
+          "Pascal Siakam",
+          "Nikola Jokic",
+          "Derik Queen",
+          "Sandro Mamukelashvili",
+          "Jock Landale",
+          "Ajay Mitchell",
+          "Taelon Peter"
+        ]
+      },
+      {
+        "place": 2,
+        "players": [
+          "Cade Cunningham",
+          "Devin Booker",
+          "Ryan Rollins",
+          "Pascal Siakam",
+          "Nikola Jokic",
+          "Derik Queen",
+          "Pelle Larsson",
+          "Jaylon Tyson",
+          "Sandro Mamukelashvili",
+          "Jock Landale"
+        ]
+      },
+      {
+        "place": 3,
+        "players": [
+          "Stephen Curry",
+          "Josh Giddey",
+          "Julius Randle",
+          "Nikola Jokic",
+          "Deni Avdija",
+          "Ryan Rollins",
+          "Ajay Mitchell",
+          "Mouhamed Gueye",
+          "Cam Spencer",
+          "Gui Santos"
+        ]
+      },
+      {
+        "place": 4,
+        "players": [
+          "Ryan Rollins",
+          "Josh Giddey",
+          "Cade Cunningham",
+          "Nikola Jokic",
+          "Mikal Bridges",
+          "Derik Queen",
+          "Russell Westbrook",
+          "Daniss Jenkins",
+          "Simone Fontecchio",
+          "Gui Santos"
+        ]
+      },
+      {
+        "place": 5,
+        "players": [
+          "Josh Giddey",
+          "Cade Cunningham",
+          "Jalen Brunson",
+          "Deni Avdija",
+          "Alperen Sengun",
+          "Ryan Rollins",
+          "Derik Queen",
+          "Daniss Jenkins",
+          "Nae'Qwan Tomlin",
+          "Moussa Cisse"
+        ]
+      }, {
+        "place": 6,
+        "players": [
+          "Ryan Rollins",
+          "Luka Doncic",
+          "Derik Queen",
+          "Scottie Barnes",
+          "Jaime Jaquez Jr.",
+          "Tyrese Maxey",
+          "Jock Landale",
+          "Jalen Johnson",
+          "Kon Knueppel",
+          "Ajay Mitchell"
+        ]
+      },
+      {
+        "place": 7,
+        "players": [
+          "Ryan Rollins",
+          "Collin Gillespie",
+          "Derik Queen",
+          "Nikola Jokic",
+          "Deni Avdija",
+          "Jaime Jaquez Jr.",
+          "Kon Knueppel",
+          "Tyrese Maxey",
+          "Ajay Mitchell",
+          "Jalen Johnson"
+        ]
+      },
+      {
+        "place": 8,
+        "players": [
+          "Ryan Rollins",
+          "Russell Westbrook",
+          "Lauri Markkanen",
+          "Jaime Jaquez Jr.",
+          "Deni Avdija",
+          "Alexandre Sarr",
+          "Kyshawn George",
+          "Ajay Mitchell",
+          "Kon Knueppel",
+          "Shai Gilgeous-Alexander"
+        ]
+      }
+    ]
+  },
+  "week_7": {
+  "rankings": [
+    {
+      "place": 1,
+      "players": [
+        "Luka Doncic",
+        "Cade Cunningham",
+        "Ryan Rollins",
+        "Pascal Siakam",
+        "Jalen Johnson",
+        "Derik Queen",
+        "Quentin Grimes",
+        "Neemias Queta",
+        "Noah Clowney",
+        "Pelle Larsson"
+      ]
+    },
+    {
+      "place": 2,
+      "players": [
+        "Ryan Rollins",
+        "Nickeil Alexander-Walker",
+        "Ryan Kalkbrenner",
+        "Nikola Jokic",
+        "Jalen Johnson",
+        "Deni Avdija",
+        "Tyrese Maxey",
+        "Ajay Mitchell",
+        "Jeremiah Fears",
+        "Derik Queen"
+      ]
+    },
+    {
+      "place": 3,
+      "players": [
+        "Ryan Rollins",
+        "Nickeil Alexander-Walker",
+        "Collin Gillespie",
+        "Nikola Jokic",
+        "Jalen Johnson",
+        "Deni Avdija",
+        "Tyrese Maxey",
+        "Cam Spencer",
+        "Neemias Queta",
+        "Derik Queen"
+      ]
+    }
+  ]
+}
+
+}
+
+
+
+

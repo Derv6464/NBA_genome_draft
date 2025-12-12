@@ -1,7 +1,8 @@
 import random
-import population
+import genetic_tools.population as population
 from tree.tree import Tree
 from tree.treeNode import TreeNode
+from team import Team
 from typing import Optional, Tuple, List
 
 class GeneticOperators:
@@ -94,15 +95,13 @@ class GeneticOperators:
 
         return Tree(self.copy_tree(parent1.root), parent1.sch, fitness=None), Tree(self.copy_tree(parent2.root), parent2.sch, fitness=None)
 
-    def mutate(self, team):
+    def mutate(self, team : list[dict]) -> None:
         team_size = len(team)
         random_player_index = random.randint(0, team_size - 1)
         new_player = random.choice(self.players)
         team[random_player_index] = new_player
-
-        #print(f"Mutated team by replacing player at index {random_player_index} with {new_player.get('name')}")
     
-    def crossover(self, team1, team2):
+    def crossover(self, team1: Team, team2: Team) -> Tuple[Team, Team]:
         team_size = len(team1.players)
         crossover_point = random.randint(1, team_size - 1)
 
@@ -114,8 +113,8 @@ class GeneticOperators:
 
         return team1, team2
     
-    def should_mutate(self):
+    def should_mutate(self) -> bool:
         return random.random() < 0.2
 
-    def should_crossover(self):
+    def should_crossover(self) -> bool:
         return random.random() < 0.8

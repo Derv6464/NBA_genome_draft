@@ -1,21 +1,20 @@
 import json
 from team import Team
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-from datetime import datetime
+from analysis_tools.grapher import Grapher
+from team_handler import TeamHandler
 
 class Comparitor:
-    def __init__(self, team_handler, comparison_teams_names, start_week=3, end_week=6):
+    def __init__(self, team_handler:TeamHandler, comparison_teams_names:list[str], grapher:Grapher, start_week=3, end_week=6):
         self.team_handler = team_handler
         self.comparison_teams = dict()
         self.start_week = start_week
         self.end_week = end_week
+        self.grapher = grapher
 
         for team in comparison_teams_names:
             self.comparison_teams[team] = self.make_comparison_teams(team)
 
-    def read_comparion_file(self, file_path="data"):
+    def read_comparion_file(self, file_path="data") -> dict:
         with open(f"{file_path}/comparison_teams.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data
@@ -28,7 +27,7 @@ class Comparitor:
 
         return teams
 
-    def get_fitness_scores(self, week):
+    def get_fitness_scores(self, week:int) -> dict:
         fitness = dict()
         for team_name, teams in self.comparison_teams.items():
             team = teams[week - 3]
@@ -37,14 +36,13 @@ class Comparitor:
 
         return fitness
     
-    def print_table(self,table_dict, weeks, label):
+    def _print_table(self,table_dict: dict, weeks : list, label):
         rows = []
         header = [label] + [str(w) for w in weeks]
         rows.append(header)
 
         for team_name, values in table_dict.items():
             rows.append([team_name] + [str(v) for v in values])
-
 
         col_widths = [max(len(row[col]) for row in rows) for col in range(len(rows[0]))]
 
@@ -54,7 +52,6 @@ class Comparitor:
     
     def compare_fitness(self, best_team):
         weeks = list(range(self.start_week, self.end_week + 1))
-
 
         table = {"Best Team": []}
         for team_name in self.comparison_teams.keys():
@@ -79,9 +76,9 @@ class Comparitor:
 
         self.fitness_table = table
         print("\n=== Fitness Comparison Table ===")
-        self.print_table(table, weeks, "week")
+        self._print_table(table, weeks, "week")
 
-    def compare_weekly_scores(self, best_team):
+    def compare_weekly_scores(self, best_team: Team):
         weeks = list(range(self.start_week, self.end_week + 1))
 
         table = {"Best Team": []}
@@ -106,7 +103,7 @@ class Comparitor:
 
         self.weekly_score_table = table
         print("\n=== Weekly Score Comparison Table ===")
-        self.print_table(table, weeks, "week")
+        self._print_table(table, weeks, "week")
 
     def compare_days_scores(self, best_team, weeks, days):
         for week in weeks:
@@ -129,57 +126,35 @@ class Comparitor:
                     winning_team = max(self.comparison_teams.items(), key=lambda item: item[1][week - 3].get_max_score(week, day))[0]
                 table["Winning Team"].append(winning_team)
 
-            self.print_table(table, days, "day")
+            self._print_table(table, days, "day")
 
-                
-            
     def graph_fitness(self):
         weeks = list(range(self.start_week, self.end_week + 1))
         teams = [team for team in self.fitness_table.keys() if team != "Winning Team"]
 
-        # width of each bar inside a week
-        bar_width = 0.8 / len(teams)
-
-        # positions of each week on x-axis
-        x = np.arange(len(weeks))
-
-        plt.figure()
-
-        for i, team_name in enumerate(teams):
-            scores = self.fitness_table[team_name]
-            plt.bar(x + i * bar_width, scores, width=bar_width, label=team_name)
-
-        plt.xlabel("Week")
-        plt.ylabel("Fitness")
-        plt.title("Fitness Comparison by Week (Histogram)")
-        plt.xticks(x + bar_width * (len(teams)-1) / 2, weeks)
-        plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-2.png")
-        plt.savefig(file_path, bbox_inches='tight')
+        self.grapher.graph_hist_bar(
+            x_data=teams,
+            y_data=self.fitness_table,
+            category=weeks,
+            cat_label="Week",
+            y_label="Fitness Score",
+            title="Fitness Comparison by Week (Histogram)"
+        )
 
     def graph_weekly_scores(self):
         weeks = list(range(self.start_week, self.end_week + 1))
         teams = [team for team in self.weekly_score_table.keys() if team != "Winning Team"]
 
-        bar_width = 0.8 / len(teams)
-        x = np.arange(len(weeks))
-
-        plt.figure()
-
-        for i, team_name in enumerate(teams):
-            scores = self.weekly_score_table[team_name]
-            plt.bar(x + i * bar_width, scores, width=bar_width, label=team_name)
-
-        plt.xlabel("Week")
-        plt.ylabel("Weekly Score")
-        plt.title("Weekly Score Comparison by Week (Histogram)")
-        plt.xticks(x + bar_width * (len(teams)-1) / 2, weeks)
-        plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-2.png")
-        plt.savefig(file_path, bbox_inches='tight')
+        self.grapher.graph_hist_bar(
+            x_data=teams,
+            y_data=self.weekly_score_table,
+            category=weeks,
+            cat_label="Week",
+            y_label="Weekly Score",
+            title="Weekly Score Comparison by Week (Histogram)"
+        )
 
     def graph_days_scores(self, best_team, weeks, days):
-
         for week in weeks:
             table = {"Best Team": []}
             for team_name in self.comparison_teams.keys():
@@ -193,22 +168,11 @@ class Comparitor:
                     team_score = teams[week - 3].get_max_score(week, day)
                     table[team_name].append(team_score)
 
-
-        teams = list(table.keys())
-        bar_width = 0.8 / len(teams)
-        x = np.arange(len(days))
-
-        plt.figure()
-
-        for i, team_name in enumerate(teams):
-            scores = table[team_name]
-            plt.bar(x + i * bar_width, scores, width=bar_width, label=team_name)
-
-        plt.xlabel("Day")
-        plt.ylabel("Max Score")
-        plt.title(f"Max Possible Scores by Day – Week {week}")
-        plt.xticks(x + bar_width * (len(teams) - 1) / 2, days)
-        plt.legend()
-        file_path = os.path.join("data/images/", f"{datetime.now()}-4.png")
-        plt.savefig(file_path, bbox_inches='tight')
-
+        self.grapher.graph_hist_bar(
+            x_data=list(table.keys()),
+            y_data=table,
+            category=days,
+            cat_label="Day",
+            y_label="Max Score",
+            title=f"Max Possible Scores by Day – Week {week} (Histogram)"
+        )
