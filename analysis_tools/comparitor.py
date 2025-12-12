@@ -50,7 +50,7 @@ class Comparitor:
             padded = [row[i].ljust(col_widths[i]) for i in range(len(row))]
             print(" | ".join(padded))
     
-    def compare_fitness(self, best_team):
+    def compare_fitness(self, best_team: Team) -> dict:
         weeks = list(range(self.start_week, self.end_week + 1))
 
         table = {"Best Team": []}
@@ -78,7 +78,7 @@ class Comparitor:
         print("\n=== Fitness Comparison Table ===")
         self._print_table(table, weeks, "week")
 
-    def compare_weekly_scores(self, best_team: Team):
+    def compare_weekly_scores(self, best_team: Team) -> dict:
         weeks = list(range(self.start_week, self.end_week + 1))
 
         table = {"Best Team": []}
@@ -105,7 +105,7 @@ class Comparitor:
         print("\n=== Weekly Score Comparison Table ===")
         self._print_table(table, weeks, "week")
 
-    def compare_days_scores(self, best_team, weeks, days):
+    def compare_days_scores(self, best_team: Team, weeks: list[int], days: list[int]) -> dict:
         for week in weeks:
             table = {"Best Team": []}
             for team_name in self.comparison_teams.keys():
