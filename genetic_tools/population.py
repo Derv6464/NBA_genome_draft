@@ -29,7 +29,7 @@ class Population:
     def __init__(self):
         self.individuals = []
 
-    def ramped_half_and_half(self, size, grow_funcs=None, full_func=None, type = None):
+    def ramped_half_and_half(self, size:int, grow_funcs=None, full_func=None, type = None) -> list:
         individuals = []      
 
         if type == "fitness":
@@ -67,7 +67,7 @@ class Population:
         self.individuals = individuals
         return individuals
     
-    def generate_full_tree(self, max_depth, current_depth=0):
+    def generate_full_tree(self, max_depth:int, current_depth=0) -> TreeNode:
         if current_depth == max_depth:
             value = random.choice(VARIABLES)
             return TreeNode(value)
@@ -90,7 +90,7 @@ class Population:
         
         return node
 
-    def generate_grow_tree(self, max_depth, current_depth=0):
+    def generate_grow_tree(self, max_depth: int, current_depth=0) -> TreeNode:
         if current_depth == max_depth:
             value = random.choice(VARIABLES)
             return TreeNode(value)
@@ -117,7 +117,7 @@ class Population:
         
         return node
         
-    def make_wheel(self, individuals):
+    def make_wheel(self, individuals: list) -> list:
         # Invert errors so lower fitness (error) gets higher selection probability
         eps = 1e-9
         raw = []
@@ -134,8 +134,7 @@ class Population:
         wheel = [(person, weight / total) for person, weight in raw]
         return wheel
 
-    def selector(self, wheel):
-
+    def selector(self, wheel: list) -> any:
         pop = [team for team, _ in wheel]
         percents = [p for _, p in wheel]
 

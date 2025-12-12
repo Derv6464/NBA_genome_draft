@@ -1,15 +1,16 @@
-import json 
-class Schedule:
-    def __init__(self, schedule_data):
-        self.espn_to_nba  = self.read_messed_up_names()
-        self.schedule_data = self.make_schedule(schedule_data)
+import json
 
-    def read_messed_up_names(self):
+class Schedule:
+    def __init__(self, schedule_data: dict):
+        self.espn_to_nba  = self._read_messed_up_names()
+        self.schedule_data = self._make_schedule(schedule_data)
+
+    def _read_messed_up_names(self) -> dict:
         with open(f"data/messed_up_name.json", "r", encoding="utf-8") as f:
             data = json.load(f)
             return data["teams"]
 
-    def make_schedule(self, schedule_data):
+    def _make_schedule(self, schedule_data: dict) -> list:
         schedule = [[[] for _ in range(7)] for _ in range(26)] 
         for week, week_data in schedule_data.items():
             for day, games in week_data.items():
@@ -26,7 +27,8 @@ class Schedule:
         return schedule
 
 
-    def get_team_days(self, team, week):
+    def get_team_days(self, team:str, week:int) -> list[int]:
+        '''Returns the days a team is playing in a given week'''
         days_playing = []
 
         for i, day in enumerate(self.schedule_data[week-1]):
